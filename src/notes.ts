@@ -1,8 +1,6 @@
-import * as vscode from 'vscode';
 import { Page } from "puppeteer";
 import * as puppeteer from "puppeteer";
-
-const logger = vscode.window.createOutputChannel("Orange");
+import logger from './logger';
 
 const readPageUrl = "https://read.amazon.com";
 const gotoNotesSelector = "button#notes_button h3";
@@ -19,12 +17,12 @@ const isNotesPage = async (page: Page | null): Promise<boolean> => {
         return false;
     }
     const title = await page.title();
-    logger.appendLine("Checking page with title " + title);
+    logger.info(`Checking page with title: "${title}"`);
     return !!(title && title.toLowerCase().indexOf("your notes") >= 0);
 };
 
 export const fetchNotes = async () => {
-    logger.appendLine("Fetching notes");
+    logger.info("Fetching notes");
     const browser = await puppeteer.launch({
         headless: true,
     });
@@ -54,7 +52,7 @@ export const fetchNotes = async () => {
     for (const page of await browser.pages()) {
         if (await isNotesPage(page)) {
             notesPage = page;
-            logger.appendLine("Found notesPage");
+            logger.info("Found notesPage");
             break;
         }
     }
@@ -66,7 +64,9 @@ export const fetchNotes = async () => {
         elements => elements.map(e => e.textContent)
     );
     for (const note of notes) {
-        logger.appendLine(note);
+        logger.info(note);
     }
+    logger.info("Finish reading notes. Closing browser");
     await browser.close();
+    logger.info("Browser closed");
 };
