@@ -3,6 +3,7 @@
 	"displayName": "KindleNotes",
 	"description": "",
 	"version": "0.0.1",
+	"publisher": "thoqbk",
 	"engines": {
 		"vscode": "^1.65.0"
 	},
@@ -43,6 +44,7 @@
 		"@vscode/test-electron": "^2.1.2"
 	},
 	"dependencies": {
+		"dotenv": "^16.0.0",
 		"puppeteer": "^13.4.1"
 	}
 }

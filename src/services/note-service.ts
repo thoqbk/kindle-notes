@@ -1,6 +1,7 @@
 import { Page } from "puppeteer";
 import * as puppeteer from "puppeteer";
-import logger from './logger';
+import logger from "../logger";
+import config from "../config";
 
 const readPageUrl = "https://read.amazon.com";
 const gotoNotesSelector = "button#notes_button h3";
@@ -8,9 +9,6 @@ const emailSelector = "input[type='email']";
 const passwordSelector = "input[type='password']";
 const notesContainerSelector = "div#kp-notebook-annotations";
 const notesSelector = "span#highlight";
-
-const email = "";
-const password = "";
 
 const isNotesPage = async (page: Page | null): Promise<boolean> => {
     if (page === null) {
@@ -24,7 +22,8 @@ const isNotesPage = async (page: Page | null): Promise<boolean> => {
 export const fetchNotes = async () => {
     logger.info("Fetching notes");
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: config.headless,
+        userDataDir: config.browserDataPath,
     });
     const readPage = await browser.newPage();
     // login
@@ -33,9 +32,9 @@ export const fetchNotes = async () => {
     await readPage.waitForSelector(passwordSelector);
     
     await readPage.focus(emailSelector);
-    await readPage.keyboard.type(email);
+    await readPage.keyboard.type(config.user.email);
     await readPage.focus(passwordSelector);
-    await readPage.keyboard.type(password);
+    await readPage.keyboard.type(config.user.password);
 
     await readPage.keyboard.press("Enter");
 

@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 const channel = vscode.window.createOutputChannel("Kindle Notes");
 channel.show();
 
-const info = (...args: any[]) => {
+const log = (severity: String, ...args: any[]) => {
     if (!args || !args.length) {
         return;
     }
@@ -12,10 +12,19 @@ const info = (...args: any[]) => {
         message += arg;
     }
     if (message) {
-        channel.appendLine(message);
+        channel.appendLine(`${severity} - ${message}`);
     }
+};
+
+const info = (...args: any[]) => {
+    log("INFO", ...args);
+};
+
+const error = (...args: any[]) => {
+    log("ERROR", ...args);
 };
 
 export default {
     info,
+    error,
 };
