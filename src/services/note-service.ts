@@ -3,21 +3,11 @@ import * as puppeteer from "puppeteer";
 import logger from "../logger";
 import config from "../config";
 
-const readPageUrl = "https://read.amazon.com";
-const gotoNotesSelector = "button#notes_button h3";
+const notesPageUrl = "https://read.amazon.com/notebook";
 const emailSelector = "input[type='email']";
 const passwordSelector = "input[type='password']";
 const notesContainerSelector = "div#kp-notebook-annotations";
 const notesSelector = "span#highlight";
-
-const isNotesPage = async (page: Page | null): Promise<boolean> => {
-    if (page === null) {
-        return false;
-    }
-    const title = await page.title();
-    logger.info(`Checking page with title: "${title}"`);
-    return !!(title && title.toLowerCase().indexOf("your notes") >= 0);
-};
 
 export const fetchNotes = async () => {
     logger.info("Fetching notes");
@@ -25,39 +15,31 @@ export const fetchNotes = async () => {
         headless: config.headless,
         userDataDir: config.browserDataPath,
     });
-    const readPage = await browser.newPage();
+    const notesPage = await browser.newPage();
     // login
-    await readPage.goto(readPageUrl);
-    await readPage.waitForSelector(emailSelector);
-    await readPage.waitForSelector(passwordSelector);
-    
-    await readPage.focus(emailSelector);
-    await readPage.keyboard.type(config.user.email);
-    await readPage.focus(passwordSelector);
-    await readPage.keyboard.type(config.user.password);
+    await notesPage.goto(notesPageUrl);
+    await notesPage.waitForFunction((emailSelector: string, passwordSelector: string, notesContainerSelector: string) => {
+        const loginPage = document.querySelector(emailSelector) && document.querySelector(passwordSelector);
+        const notesPage = document.querySelector(notesContainerSelector);
+        return loginPage || notesPage;
+    }, {}, emailSelector, passwordSelector, notesContainerSelector);
+    if (await isLoginPage(notesPage)) {
+        await notesPage.focus(emailSelector);
+        await notesPage.keyboard.type(config.user.email);
+        await notesPage.focus(passwordSelector);
+        await notesPage.keyboard.type(config.user.password);
 
-    await readPage.keyboard.press("Enter");
-
-    // library page
-    await readPage.waitForSelector(gotoNotesSelector);
-    await readPage.click(gotoNotesSelector);
+        await notesPage.keyboard.press("Enter");
+    }
 
     // notes page
     await browser.waitForTarget(async (target) => {
         const page = await target.page();
         return await isNotesPage(page);
     });
-    let notesPage: Page | null = null;
-    for (const page of await browser.pages()) {
-        if (await isNotesPage(page)) {
-            notesPage = page;
-            logger.info("Found notesPage");
-            break;
-        }
-    }
 
     // getting notes
-    notesPage && await notesPage.waitForSelector(notesContainerSelector);
+    await notesPage.waitForSelector(notesContainerSelector);
     const notes: any = notesPage && await notesPage.$$eval(
         notesSelector,
         elements => elements.map(e => e.textContent)
@@ -68,4 +50,24 @@ export const fetchNotes = async () => {
     logger.info("Finish reading notes. Closing browser");
     await browser.close();
     logger.info("Browser closed");
+};
+
+const isNotesPage = async (page: Page | null): Promise<boolean> => {
+    if (page === null) {
+        return false;
+    }
+    const title = await page.title();
+    logger.info(`Checking page with title: "${title}"`);
+    return !!(title && title.toLowerCase().indexOf("your notes") >= 0);
+};
+
+const isLoginPage = async (page: Page | null): Promise<boolean> => {
+    return await foundElement(page, emailSelector)
+        && await foundElement(page, passwordSelector);
+};
+
+const foundElement = async (page: Page | null, selector: string): Promise<boolean> => {
+    const retVal = page && await page.$(selector);
+    logger.info(`Check element ${selector} in page. Result: ${!!retVal}`);
+    return !!retVal;
 };
