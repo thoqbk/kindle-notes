@@ -2,6 +2,7 @@ import { Page } from "puppeteer";
 import * as puppeteer from "puppeteer";
 import logger from "../logger";
 import config from "../config";
+import { Note } from "../types/services";
 
 const notesPageUrl = "https://read.amazon.com/notebook";
 const emailSelector = "input[type='email']";
@@ -9,7 +10,7 @@ const passwordSelector = "input[type='password']";
 const notesContainerSelector = "div#kp-notebook-annotations";
 const notesSelector = "span#highlight";
 
-export const fetchNotes = async () => {
+export const fetchNotes = async (): Promise<Note[]> => {
     logger.info("Fetching notes");
     const browser = await puppeteer.launch({
         headless: config.headless,
@@ -40,16 +41,23 @@ export const fetchNotes = async () => {
 
     // getting notes
     await notesPage.waitForSelector(notesContainerSelector);
-    const notes: any = notesPage && await notesPage.$$eval(
+    const notes: Note[] = await notesPage.$$eval(
         notesSelector,
-        elements => elements.map(e => e.textContent)
+        elements => elements.map(element => {
+            const idParts = element.parentElement?.id.split("-");
+            return {
+                content: element.textContent || "",
+                id: (idParts && idParts.length === 2 && idParts[1]) || "",
+            };
+        })
     );
     for (const note of notes) {
-        logger.info(note);
+        logger.info(`${note.id} - ${note.content}`);
     }
     logger.info("Finish reading notes. Closing browser");
     await browser.close();
     logger.info("Browser closed");
+    return [];
 };
 
 const isNotesPage = async (page: Page | null): Promise<boolean> => {
