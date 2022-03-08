@@ -14,10 +14,17 @@ const bookNameSelector = "a h2";
 const authorSelector = "a p";
 const bookPhotoSelector = "a div.a-row img";
 
-export const fetchNotes = async (): Promise<Note[]> => {
-    logger.info("Fetching notes");
+export const fetchNotes = async (bookId: string): Promise<Note[]> => {
+    logger.info(`Fetching notes for book ${bookId}`);
     const browser = await launchBrowser();
     const notesPage = await ensureNotesPage(browser);
+    const bookLinkSelector = getBookLinkSelector(bookId);
+    if (!(await foundElement(notesPage, bookLinkSelector))) {
+        logger.info(`Book not found ${bookId}, returning empty notes`);
+        return [];
+    }
+    await notesPage.click(bookLinkSelector);
+    await notesPage.waitForNetworkIdle();
 
     // getting notes
     const retVal: Note[] = await notesPage.$$eval(
@@ -103,15 +110,6 @@ const launchBrowser = async (): Promise<puppeteer.Browser> => {
     });
 };
 
-const isNotesPage = async (page: Page | null): Promise<boolean> => {
-    if (page === null) {
-        return false;
-    }
-    const title = await page.title();
-    logger.info(`Checking page with title: "${title}"`);
-    return !!(title && title.toLowerCase().indexOf("your notes") >= 0);
-};
-
 const isLoginPage = async (page: Page | null): Promise<boolean> => {
     return await foundElement(page, emailSelector) || await foundElement(page, passwordSelector);
 };
@@ -121,3 +119,5 @@ const foundElement = async (page: Page | null, selector: string): Promise<boolea
     logger.info(`Check element ${selector} in page. Result: ${!!retVal}`);
     return !!retVal;
 };
+
+const getBookLinkSelector = (id: string): string => `div#kp-notebook-library div#${id} a`;
