@@ -5,7 +5,7 @@ import * as fs from "fs";
 import * as dotenv from "dotenv";
 import logger from "./logger";
 
-const envPath = path.join(__dirname, ".env");
+const envPath = path.join(__dirname, "..", "src", ".env");
 if (fs.existsSync(envPath)) {
     logger.info(`Using ${envPath} file to supply config environment variables`);
     dotenv.config({ path: envPath });
@@ -29,6 +29,7 @@ const config = {
         password: process.env.KINDLE_NOTES_PASSWORD || "",
     },
     headless: !(process.env.KINDLE_NOTES_HEADLESS === "false"),
+    flashcardsHomePath: process.env.FLASHCARDS_HOME_PATH as string,
 };
 
 export default config;

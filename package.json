@@ -45,6 +45,7 @@
 	},
 	"dependencies": {
 		"dotenv": "^16.0.0",
+		"front-matter": "^4.0.2",
 		"puppeteer": "^13.4.1"
 	}
 }

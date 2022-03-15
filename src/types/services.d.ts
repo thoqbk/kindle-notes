@@ -9,3 +9,9 @@ export interface Book {
     author: string;
     photo: string;
 }
+
+export interface Markdown {
+    id?: string;
+    title: string;
+    fileName: string;
+}
