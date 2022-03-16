@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs/promises";
+import * as _ from "lodash";
 import config from "../config";
 import logger from "../logger";
 import * as BookService from "../services/book-service";
@@ -9,17 +10,11 @@ import { Book } from "../types/services";
 export const syncBooks = async () => {
     logger.info("Syncing books from Kindle");
     const markdowns = await FileService.allMarkdowns();
-    const existingIds = markdowns.map(md => md.id);
+    const fileNames = _.fromPairs(markdowns.map(md => [md.id, md.fileName]));
     const books = await BookService.fetchBooks();
     for (const book of books) {
-        if (existingIds.indexOf(book.id) >= 0) {
-            logger.info(`Skipping. Markdown file for ${book.name} is already created`);
-            continue;
-        } else {
-            logger.info(`Creating markdown file for book ${book.name}`);
-            const filePath = path.join(config.flashcardsHomePath, toMarkdownFileName(book));
-            await fs.writeFile(filePath, frontMatter(book), "utf8");
-        }
+        let filePath = path.join(config.flashcardsHomePath, fileNames[book.id] || toMarkdownFileName(book));
+        await fs.writeFile(filePath, BookService.toMarkdown(book), "utf8");
     }
     logger.info("Sync books successfully");
 };
@@ -30,12 +25,4 @@ const toMarkdownFileName = (book: Book) => {
         .replace(/\s+/g, "-")
         .toLowerCase()
         + ".md";
-};
-
-const frontMatter = (book: Book) => {
-    return `---
-id: ${book.id}
-title: "${book.name}"
----
-`;
 };

@@ -49,6 +49,17 @@ export const fetchBooks = async (): Promise<Book[]> => {
     return books;
 };
 
+export const toMarkdown = (book: Book): string => {
+    let retVal = frontMatter(book);
+    for (const note of book.notes) {
+        retVal += `
+##
+${note.content}
+`;
+    }
+    return retVal;
+};
+
 const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<Note[]> => {
     logger.info(`Fetching notes for book ${bookId}`);
     const notesPage = await ensureNotesPage(browser);
@@ -121,3 +132,11 @@ const foundElement = async (page: Page | null, selector: string): Promise<boolea
 };
 
 const getBookLinkSelector = (id: string): string => `div#kp-notebook-library div#${id} a`;
+
+const frontMatter = (book: Book) => {
+    return `---
+id: ${book.id}
+title: "${book.name}"
+---
+`;
+};
