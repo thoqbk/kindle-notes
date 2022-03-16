@@ -7,44 +7,13 @@ import { Book, Note } from "../types/services";
 const notesPageUrl = "https://read.amazon.com/notebook";
 const emailSelector = "input[type='email']";
 const passwordSelector = "input[type='password']";
-const notesContainerSelector = "div#kp-notebook-annotations";
+const notesContainerSelector = "div#kp-notebook-annotations-pane";
+const bookMetadataSelector = "div#kp-notebook-annotations-pane span.kp-notebook-metadata";
 const notesSelector = "span#highlight";
 const booksSelector = "#kp-notebook-library .kp-notebook-library-each-book";
 const bookNameSelector = "a h2";
 const authorSelector = "a p";
 const bookPhotoSelector = "a div.a-row img";
-
-export const fetchNotes = async (bookId: string): Promise<Note[]> => {
-    logger.info(`Fetching notes for book ${bookId}`);
-    const browser = await launchBrowser();
-    const notesPage = await ensureNotesPage(browser);
-    const bookLinkSelector = getBookLinkSelector(bookId);
-    if (!(await foundElement(notesPage, bookLinkSelector))) {
-        logger.info(`Book not found ${bookId}, returning empty notes`);
-        return [];
-    }
-    await notesPage.click(bookLinkSelector);
-    await notesPage.waitForNetworkIdle();
-
-    // getting notes
-    const retVal: Note[] = await notesPage.$$eval(
-        notesSelector,
-        elements => elements.map(element => {
-            const idParts = element.parentElement?.id.split("-");
-            return {
-                content: element.textContent || "",
-                id: (idParts && idParts.length === 2 && idParts[1]) || "",
-            };
-        })
-    );
-    for (const note of retVal) {
-        logger.info(`${note.id} - ${note.content}`);
-    }
-    logger.info("Finish reading notes. Closing browser");
-    await browser.close();
-    logger.info("Browser closed");
-    return retVal;
-};
 
 export const fetchBooks = async (): Promise<Book[]> => {
     const browser = await launchBrowser();
@@ -63,6 +32,7 @@ export const fetchBooks = async (): Promise<Book[]> => {
                     name: element.querySelector(bookNameSelector)?.textContent || "",
                     author,
                     photo: element.querySelector(bookPhotoSelector)?.getAttribute("src") || "",
+                    notes: [],
                 };
         }),
         authorSelector,
@@ -70,7 +40,8 @@ export const fetchBooks = async (): Promise<Book[]> => {
         bookPhotoSelector
     );
     for (const book of books) {
-        logger.info(`${book.id} - ${book.name} - ${book.photo}`);
+        logger.info(`Fetching notes for books ${book.name}`);
+        book.notes = await fetchNotes(book.id, browser);
     }
     logger.info(`Finish fetching books, found ${books.length}. Closing browser`);
     await browser.close();
@@ -78,8 +49,37 @@ export const fetchBooks = async (): Promise<Book[]> => {
     return books;
 };
 
+const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<Note[]> => {
+    logger.info(`Fetching notes for book ${bookId}`);
+    const notesPage = await ensureNotesPage(browser);
+    const bookLinkSelector = getBookLinkSelector(bookId);
+    if (!(await foundElement(notesPage, bookLinkSelector))) {
+        logger.info(`Book not found ${bookId}, returning empty notes`);
+        return [];
+    }
+    await notesPage.click(bookLinkSelector);
+    await notesPage.waitForSelector(bookMetadataSelector);
+
+    // getting notes
+    const retVal: Note[] = await notesPage.$$eval(
+        notesSelector,
+        elements => elements.map(element => {
+            const idParts = element.parentElement?.id.split("-");
+            return {
+                content: element.textContent || "",
+                id: (idParts && idParts.length === 2 && idParts[1]) || "",
+            };
+        })
+    );
+    logger.info(`Found ${retVal.length} notes for book ${bookId}`);
+    return retVal;
+};
+
 const ensureNotesPage = async (browser: puppeteer.Browser): Promise<Page> => {
-    const retVal = await browser.newPage();
+    const [retVal] = await browser.pages();
+    if (await foundElement(retVal, notesContainerSelector)) {
+        return retVal;
+    }
     // login
     await retVal.goto(notesPageUrl);
     await retVal.waitForFunction((emailSelector: string, passwordSelector: string, notesContainerSelector: string) => {
@@ -116,7 +116,7 @@ const isLoginPage = async (page: Page | null): Promise<boolean> => {
 
 const foundElement = async (page: Page | null, selector: string): Promise<boolean> => {
     const retVal = page && await page.$(selector);
-    logger.info(`Check element ${selector} in page. Result: ${!!retVal}`);
+    logger.info(`Finding element "${selector}" in page. Found: ${!!retVal}`);
     return !!retVal;
 };
 

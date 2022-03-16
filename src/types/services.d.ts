@@ -8,6 +8,7 @@ export interface Book {
     name: string;
     author: string;
     photo: string;
+    notes: Note[];
 }
 
 export interface Markdown {
