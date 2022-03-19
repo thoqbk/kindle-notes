@@ -1,0 +1,89 @@
+/*
+ * Globals
+ */
+
+/* Links */
+a,
+a:focus,
+a:hover {
+  color: #fff;
+}
+
+/* Custom default button */
+.btn-default,
+.btn-default:hover,
+.btn-default:focus {
+  color: #333;
+  text-shadow: none; /* Prevent inheritence from `body` */
+  background-color: #fff;
+  border: 1px solid #fff;
+}
+
+/*
+ * Base structure
+ */
+
+html,
+body {
+  height: 100%;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,.5);
+  background-color: var(--vscode-editor-background);
+}
+
+/* Extra markup and styles for table-esque vertical and horizontal centering */
+.site-wrapper {
+  display: table;
+  width: 100%;
+  height: 100%;
+}
+.site-wrapper-inner {
+  display: table-cell;
+  vertical-align: middle;
+}
+.cover-container {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Padding for spacing */
+.inner {
+  padding: 30px;
+}
+
+/*
+ * Cover
+ */
+
+.cover {
+  padding: 0 20px;
+}
+
+.lead {
+  width: 100%;
+}
+
+.lead > .lvl-1 {
+  color: #FFF;
+  background-color: #AA0080;
+}
+
+.lead > .lvl-2 {
+  color: #FFF;
+  background-color: #FF8A47;
+}
+
+.lead > .lvl-3 {
+  color: #FFF;
+  background-color: #FFDD00;
+}
+
+.lead > .lvl-4 {
+  color: #FFF;
+  background-color: #7FAE2E;
+}
+
+.lead > .lvl-5 {
+  color: #FFF;
+  background-color: #00a8d7;
+}
