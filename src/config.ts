@@ -15,6 +15,7 @@ const extensionId = "thoqbk.kindle-notes";
 const extensionPath = vscode.extensions.getExtension(extensionId)?.extensionPath || "/tmp";
 const dataPath = path.join(extensionPath, "data");
 const browserDataPath = path.join(dataPath, "browser");
+const webPath = path.join(extensionPath, "web");
 
 files.checkAndCreate(dataPath);
 files.checkAndCreate(browserDataPath);
@@ -30,6 +31,7 @@ const config = {
     },
     headless: !(process.env.KINDLE_NOTES_HEADLESS === "false"),
     flashcardsHomePath: process.env.FLASHCARDS_HOME_PATH as string,
+    webPath,
 };
 
 export default config;

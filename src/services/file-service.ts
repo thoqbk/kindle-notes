@@ -1,4 +1,5 @@
 import * as fs from "fs/promises";
+import { constants as fsConstants } from "fs";
 import * as path from "path";
 import { Markdown } from "../types/services";
 
@@ -6,6 +7,9 @@ import config from "../config";
 import logger from "../logger";
 
 const fm = require("front-matter");
+const fileContentCache: {
+    [key: string]: string
+} = {};
 
 export const allMarkdowns = async (): Promise<Markdown[]> => {
     const retVal: Markdown[] = [];
@@ -13,7 +17,7 @@ export const allMarkdowns = async (): Promise<Markdown[]> => {
     const fileNames = await fs.readdir(config.flashcardsHomePath);
     const markdownFiles = fileNames.filter(fileName => path.extname(fileName) === ".md");
     logger.info(`Found ${markdownFiles.length} markdown files`);
-
+    
     for (const markdownFile of markdownFiles) {
         const data = await fs.readFile(path.join(config.flashcardsHomePath, markdownFile), "utf8");
         const content = fm(data);
@@ -27,4 +31,31 @@ export const allMarkdowns = async (): Promise<Markdown[]> => {
         }
     }
     return retVal;
+};
+
+/**
+* Read and cache file content. Return null if file not found
+* @param filePath: relative file path from extension root folder
+*/
+export const getFileContent = async (filePath: string): Promise<string | null> => {
+    if (fileContentCache[filePath]) {
+        return fileContentCache[filePath];
+    }
+    const fullFilePath = path.join(config.extensionPath, filePath);
+    if (!(await exists(fullFilePath))) {
+        logger.info(`File not exists ${fullFilePath}`);
+        return null;
+    }
+    const retVal = await fs.readFile(fullFilePath, "utf8");
+    fileContentCache[filePath] = retVal;
+    return retVal;
+};
+
+const exists = async (fullFilePath: string): Promise<boolean> => {
+    try {
+        fs.access(fullFilePath, fsConstants.F_OK);
+        return true;
+    } catch (e) {
+        return false;
+    }
 };
