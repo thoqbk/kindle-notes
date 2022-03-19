@@ -21,6 +21,7 @@ files.checkAndCreate(dataPath);
 files.checkAndCreate(browserDataPath);
 
 const config = {
+    env: process.env.ENV,
     extensionId,
     extensionPath,
     dataPath,

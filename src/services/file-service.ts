@@ -42,7 +42,7 @@ export const getFileContent = async (filePath: string): Promise<string | null> =
         return fileContentCache[filePath];
     }
     const fullFilePath = path.join(config.extensionPath, filePath);
-    if (!(await exists(fullFilePath))) {
+    if (config.env !== "DEV" && !(await exists(fullFilePath))) {
         logger.info(`File not exists ${fullFilePath}`);
         return null;
     }

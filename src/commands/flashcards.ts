@@ -19,5 +19,5 @@ const getHtmlForWebView = async (webview: vscode.Webview, context: vscode.Extens
     const root = webview.asWebviewUri(vscode.Uri.file(
         path.join(context.extensionPath, "web")
     ));
-    return retVal.replace("__ROOT__", root.toString());
+    return retVal.replace(/__ROOT__/g, root.toString());
 };
