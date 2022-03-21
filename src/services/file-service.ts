@@ -27,6 +27,7 @@ export const allMarkdowns = async (): Promise<Markdown[]> => {
                 id: attributes.id,
                 name: attributes.name,
                 fileName: markdownFile,
+                content: content.body,
             });
         }
     }
