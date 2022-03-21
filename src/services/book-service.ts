@@ -41,6 +41,7 @@ export const fetchBooks = async (): Promise<Book[]> => {
         bookNameSelector,
         bookPhotoSelector
     );
+    logger.info(`Found ${books.length} books`);
     for (const book of books) {
         logger.info(`Fetching notes for books ${book.name}`);
         book.notes = await fetchNotes(book.id, browser);
@@ -84,8 +85,8 @@ const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<N
         logger.info(`Book not found ${bookId}, returning empty notes`);
         return [];
     }
-    await notesPage.click(bookLinkSelector);
-    await notesPage.waitForSelector(bookMetadataSelector);
+    await waitForVisibleAndClick(notesPage, bookLinkSelector);
+    await notesPage.waitForSelector(bookMetadataSelector, { visible: true });
 
     // getting notes
     const retVal: Note[] = await notesPage.$$eval(
@@ -126,7 +127,7 @@ const ensureNotesPage = async (browser: puppeteer.Browser): Promise<Page> => {
     }
 
     // getting notes
-    await retVal.waitForSelector(notesContainerSelector);
+    await retVal.waitForSelector(notesContainerSelector, { visible: true });
     return retVal;
 };
 
@@ -163,4 +164,9 @@ const toNotes = (markdownBody: string): Note[] => {
         id: "na",
         content: note.trim(),
     })).filter(note => !!note.content);
+};
+
+const waitForVisibleAndClick = async (page: Page, selector: string) => {
+    await page.waitForSelector(selector, { visible: true });
+    await page.click(selector);
 };
