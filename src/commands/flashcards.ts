@@ -54,7 +54,10 @@ const nextFlashcard = () => {
     if (currentFlashcardIdx < currentFlashcards.length && currentPanel !== null) {
         currentPanel.webview.postMessage({
             type: "nextFlashcard",
-            payload: currentFlashcards[currentFlashcardIdx],
+            payload: {
+                flashcard: currentFlashcards[currentFlashcardIdx],
+                totalFlashcards: currentFlashcards.length,
+            },
         });
     }
 };

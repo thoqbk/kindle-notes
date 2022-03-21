@@ -21,9 +21,10 @@ const submitResult = (level) => {
     });
 };
 
-const loadFlashcard = (flashcard) => {
-    $("#flashcard-body").text(flashcard.body);
-    $("#flashcard-book-name").text(flashcard.bookName);
+const loadFlashcard = (payload) => {
+    $("#flashcard-body").text(payload.flashcard.body);
+    $("#flashcard-book-name").text(payload.flashcard.bookName);
+    $("#flashcard-progress").text(`${payload.flashcard.position + 1} of ${payload.totalFlashcards}`);
 };
 
 $(() => {
