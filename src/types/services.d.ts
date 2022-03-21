@@ -13,6 +13,6 @@ export interface Book {
 
 export interface Markdown {
     id?: string;
-    title: string;
+    name: string;
     fileName: string;
 }

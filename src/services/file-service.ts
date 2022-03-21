@@ -25,7 +25,7 @@ export const allMarkdowns = async (): Promise<Markdown[]> => {
         if (content.attributes !== null) {
             retVal.push({
                 id: attributes.id,
-                title: attributes.title,
+                name: attributes.name,
                 fileName: markdownFile,
             });
         }

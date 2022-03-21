@@ -4,6 +4,8 @@ import logger from "../logger";
 import config from "../config";
 import { Book, Note } from "../types/services";
 
+const fm = require("front-matter");
+
 const notesPageUrl = "https://read.amazon.com/notebook";
 const emailSelector = "input[type='email']";
 const passwordSelector = "input[type='password']";
@@ -58,6 +60,20 @@ ${note.content}
 `;
     }
     return retVal;
+};
+
+export const markdownToBook = (markdown: string): Book => {
+    const frontMatter = fm(markdown);
+    if (frontMatter.attributes === null) {
+        throw new Error(`Invalid markdown content ${markdown}`);
+    }
+    return {
+        id: frontMatter.attributes.id,
+        name: frontMatter.attributes.name,
+        author: frontMatter.attributes.author,
+        photo: frontMatter.attributes.photo,
+        notes: toNotes(frontMatter.body),
+    };
 };
 
 const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<Note[]> => {
@@ -136,7 +152,15 @@ const getBookLinkSelector = (id: string): string => `div#kp-notebook-library div
 const frontMatter = (book: Book) => {
     return `---
 id: ${book.id}
-title: "${book.name}"
+name: "${book.name}"
 ---
 `;
+};
+
+const toNotes = (markdownBody: string): Note[] => {
+    const notes = markdownBody.split(/##\n/);
+    return notes.map(note => ({
+        id: "na",
+        content: note.trim(),
+    })).filter(note => !!note.content);
 };
