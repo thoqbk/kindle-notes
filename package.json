@@ -11,14 +11,19 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:kindle-notes.helloWorld"
+		"onCommand:kindle-notes.study",
+		"onCommand:kindle-notes.syncBooks"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "kindle-notes.helloWorld",
-				"title": "Hello World"
+				"command": "kindle-notes.study",
+				"title": "Kindle Notes: Study"
+			},
+			{
+				"command": "kindle-notes.syncBooks",
+				"title": "Kindle Notes: Sync Books"
 			}
 		]
 	},

@@ -7,6 +7,7 @@
     <script src="__ROOT__/css/bootstrap/jquery-3.6.0.slim.min.js" integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="__ROOT__/css/bootstrap/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="__ROOT__/css/bootstrap/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="__ROOT__/js/main.js"></script>
     <link rel="stylesheet" href="__ROOT__/css/main.css">
     <title>Cat Coding</title>
 </head>
@@ -16,15 +17,18 @@
         <div class="site-wrapper-inner">
             <div class="container">
                 <div class="inner cover">
-                    <p class="lead">
+                    <p class="lead" id="flashcard-body">
                         Java 9, a module system was added to the platform. If a library makes use of the module system, its exported API is the union of the exported APIs of all the packages exported by the library’s module declaration.
                     </p>
+                    <p class="lead" id="flashcard-book-name">
+                        Effective Java
+                    </p>
                     <div class="lead btn-group">
-                        <button type="button" class="btn lvl-1">1<br/>Not At All</button>
-                        <button type="button" class="btn lvl-2">2</button>
-                        <button type="button" class="btn lvl-3">3</button>
-                        <button type="button" class="btn lvl-4">4</button>
-                        <button type="button" class="btn lvl-5">5<br/>Perfectly</button>
+                        <button type="button" class="btn lvl-1" onclick="submitResult(1)">1<br/>Not At All</button>
+                        <button type="button" class="btn lvl-2" onclick="submitResult(2)">2</button>
+                        <button type="button" class="btn lvl-3" onclick="submitResult(3)">3</button>
+                        <button type="button" class="btn lvl-4" onclick="submitResult(4)">4</button>
+                        <button type="button" class="btn lvl-5" onclick="submitResult(5)">5<br/>Perfectly</button>
                     </div>
                 </div>
             </div>
