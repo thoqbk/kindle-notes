@@ -15,7 +15,7 @@
 <body>
     <div class="site-wrapper">
         <div class="site-wrapper-inner">
-            <div class="container">
+            <div class="container study-page">
                 <div class="inner cover">
                     <div class="text-right" id="flashcard-progress">
                         4 of 10
@@ -34,6 +34,12 @@
                         <button type="button" class="btn lvl-4" onclick="submitResult(4)">4</button>
                         <button type="button" class="btn lvl-5" onclick="submitResult(5)">5<br/>Perfectly</button>
                     </div>
+                </div>
+            </div>
+            <div class="container completed-page" style="display: none;">
+                <div class="inner cover">
+                    <p class="lead">You have completed 10 cards</p>
+                    <button type="button" class="btn btn-success" onclick="closeWebview()">Close</button>
                 </div>
             </div>
         </div>

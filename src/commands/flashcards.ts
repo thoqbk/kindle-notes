@@ -43,6 +43,10 @@ const onDidReceiveMessage = (message: any) => {
             nextFlashcard();
             break;
         }
+        case "closeWebview": {
+            currentPanel?.dispose();
+            break;
+        }
         default: {
             logger.info(`Receive unknown message type from webview: ${message.type}`);
         }
@@ -50,14 +54,21 @@ const onDidReceiveMessage = (message: any) => {
 };
 
 const nextFlashcard = () => {
+    if (currentPanel === null) {
+        return;
+    }
     currentFlashcardIdx++;
-    if (currentFlashcardIdx < currentFlashcards.length && currentPanel !== null) {
+    if (currentFlashcardIdx < currentFlashcards.length) {
         currentPanel.webview.postMessage({
             type: "nextFlashcard",
             payload: {
                 flashcard: currentFlashcards[currentFlashcardIdx],
                 totalFlashcards: currentFlashcards.length,
             },
+        });
+    } else {
+        currentPanel.webview.postMessage({
+            type: "completed",
         });
     }
 };
