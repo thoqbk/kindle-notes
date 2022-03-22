@@ -2,6 +2,10 @@ window.addEventListener("message", event => {
     const message = event.data; // { type, payload }
     console.log("Receiving new message from KN", message);
     switch (message.type) {
+        case "firstFlashcard": {
+            loadFlashcard(message.payload);
+            break;
+        }
         case "nextFlashcard": {
             loadFlashcard(message.payload);
             break;

@@ -41,7 +41,7 @@ const onDidReceiveMessage = (message: any) => {
     logger.info(`Receiving new request from webview ${message.type}`);
     switch (message.type) {
         case "firstFlashcard": {
-            nextFlashcard();
+            firstFlashcard();
             break;
         }
         case "submitResult": {
@@ -66,21 +66,36 @@ const onDidDispose = () => {
     logger.info("Released resources because webview was disposed");
 };
 
+const firstFlashcard = () => {
+    if (currentPanel === null) {
+        return;
+    }
+    if (currentFlashcardIdx === -1) {
+        nextFlashcard();
+        return;
+    }
+    sendCurrentFlashcard(currentPanel, "firstFlashcard");
+};
+
 const nextFlashcard = () => {
     if (currentPanel === null) {
         return;
     }
     currentFlashcardIdx++;
+    sendCurrentFlashcard(currentPanel, "nextFlashcard");
+};
+
+const sendCurrentFlashcard = (panel: vscode.WebviewPanel, type: string) => {
     if (currentFlashcardIdx < currentFlashcards.length) {
-        currentPanel.webview.postMessage({
-            type: "nextFlashcard",
+        panel.webview.postMessage({
+            type,
             payload: {
                 flashcard: currentFlashcards[currentFlashcardIdx],
                 totalFlashcards: currentFlashcards.length,
             },
         });
     } else {
-        currentPanel.webview.postMessage({
+        panel.webview.postMessage({
             type: "completed",
         });
     }
