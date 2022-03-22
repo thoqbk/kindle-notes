@@ -13,6 +13,11 @@ const viewType = "catCoding";
 
 export const openFlashcards = async (context: vscode.ExtensionContext) => {
     const column = vscode.window.activeTextEditor?.viewColumn || vscode.ViewColumn.One;
+    if (currentPanel !== null) {
+        logger.info("There's already a Kindle Notes webview, make it active instead of creating a new one");
+        currentPanel.reveal(column);
+        return;
+    }
     const webviewOption: vscode.WebviewOptions = {
         enableScripts: true,
         localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "web")]
