@@ -20,6 +20,7 @@ export const openFlashcards = async (context: vscode.ExtensionContext) => {
     currentPanel = vscode.window.createWebviewPanel(viewType, "Cat Coding", column, webviewOption);
     currentPanel.webview.html = await getHtmlForWebView(currentPanel.webview, context);
     currentPanel.webview.onDidReceiveMessage(onDidReceiveMessage);
+    currentPanel.onDidDispose(onDidDispose, null, context.subscriptions);
     currentFlashcards = await FlashcardService.generate();
 };
 
@@ -51,6 +52,13 @@ const onDidReceiveMessage = (message: any) => {
             logger.info(`Receive unknown message type from webview: ${message.type}`);
         }
     }
+};
+
+const onDidDispose = () => {
+    currentFlashcardIdx = -1;
+    currentFlashcards = [];
+    currentPanel = null;
+    logger.info("Released resources because webview was disposed");
 };
 
 const nextFlashcard = () => {
