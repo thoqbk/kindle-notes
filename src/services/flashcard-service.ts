@@ -25,7 +25,7 @@ const loadBooksFromMarkdownFiles = async (): Promise<Book[]> => {
 };
 
 const pickBook = (books: Book[]): Book | null => {
-    const totalNotes = _.sumBy(books, book => book.notes.length);
+    const totalNotes = _.sumBy(books, book => book.notes.filter(filterValidNote).length);
     if (totalNotes === 0) {
         return null;
     }
@@ -33,7 +33,7 @@ const pickBook = (books: Book[]): Book | null => {
     let prev = 0;
     for (const book of books) {
         const start = prev + 1;
-        const end = prev + book.notes.length;
+        const end = prev + book.notes.filter(filterValidNote).length;
         if (rand >= start && rand <= end) {
             return book;
         }
@@ -43,13 +43,16 @@ const pickBook = (books: Book[]): Book | null => {
 };
 
 const pickNotes = (book: Book): Note[] => {
-    if (book.notes.length <= numberOfFlashcards) {
-        return book.notes;
+    const validNotes = book.notes.filter(filterValidNote);
+    if (validNotes.length <= numberOfFlashcards) {
+        return validNotes;
     }
-    const items = book.notes.map((n, idx) => ({
+    const items = validNotes.map((n, idx) => ({
         idx,
         note: n
     }));
     const randomItems = _.shuffle(items).slice(0, numberOfFlashcards);
     return _.sortBy(randomItems, item => item.idx).map(item => item.note);
 };
+
+const filterValidNote = (note: Note): boolean => !note.excluded;

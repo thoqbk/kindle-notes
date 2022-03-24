@@ -32,6 +32,27 @@ Hello 3
 `
 };
 
+const markdown3 = {
+    name: "test book 3",
+    fileName: "test-book-3.md",
+    content:`---
+id: 123
+name: "test book"
+---
+
+##
+Hello 5
+
+##
+Hello 6
+
+<!--
+excluded: true
+-->
+
+`
+};
+
 suite("FlashcardService Test Suite", () => {
     test("generate should return flaschards from a book", async () => {
         (FileService as any).allMarkdowns = () => ([markdown1, markdown2]);
@@ -61,5 +82,12 @@ suite("FlashcardService Test Suite", () => {
         expect(book2).greaterThan(0);
         expect(book2).lessThan(book1);
         expect(invalid).to.be.equal(0);
+    });
+
+    test ("generate should ignore excluded flashcard", async () => {
+        (FileService as any).allMarkdowns = () => ([markdown3]);
+        const flashcards = await FlashcardService.generate();
+        assert.strictEqual(flashcards.length, 1);
+        assert.strictEqual(flashcards[0].body, "Hello 5");
     });
 });
