@@ -16,6 +16,8 @@ Hello 1
 
 ##
 Hello 2
+##
+Hello 3
 `
 };
 
@@ -55,13 +57,15 @@ excluded: true
 
 suite("FlashcardService Test Suite", () => {
     test("generate should return flaschards from a book", async () => {
-        (FileService as any).allMarkdowns = () => ([markdown1, markdown2]);
+        (FileService as any).allMarkdowns = () => ([markdown1]);
         const flashcards = await FlashcardService.generate();
-        assert.strictEqual(flashcards.length, 2);
+        assert.strictEqual(flashcards.length, 3);
         assert.strictEqual(flashcards[0].body, "Hello 1");
         assert.strictEqual(flashcards[0].position, 0);
         assert.strictEqual(flashcards[1].body, "Hello 2");
         assert.strictEqual(flashcards[1].position, 1);
+        assert.strictEqual(flashcards[2].body, "Hello 3");
+        assert.strictEqual(flashcards[2].position, 2);
     });
 
     test("generate should return less flashcards from books with less notes", async () => {

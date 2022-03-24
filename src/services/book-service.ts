@@ -174,6 +174,7 @@ const toNote = (markdown: string): Note => {
         const metadata: any = yaml.load(metadataBlock[1]);
         retVal.location = metadata.location;
         retVal.excluded = metadata.excluded;
+        retVal.page = metadata.page;
     }
     return retVal;
 };

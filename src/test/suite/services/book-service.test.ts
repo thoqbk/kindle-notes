@@ -22,7 +22,8 @@ line 2
 line 3
 line 4
 <!--
-location: "123"
+location: 123
+page: 98
 excluded: true
 -->
 `;
@@ -48,7 +49,8 @@ suite("BookService Test Suite", () => {
         assert.strictEqual(book.notes[0].content, "line 1\nline 2");
         assert.strictEqual(book.notes[1].content, "line 3\nline 4");
         const note2 = book.notes[1];
-        assert.strictEqual(note2.location, "123");
+        assert.strictEqual(note2.location, 123);
+        assert.strictEqual(note2.page, 98);
         assert.strictEqual(note2.excluded, true);
     });
 });
