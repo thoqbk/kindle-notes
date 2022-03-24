@@ -1,8 +1,7 @@
 import * as assert from "assert";
 import { expect } from "chai";
 import * as FlashcardService from "../../../services/flashcard-service";
-
-const FileService = require("../../../services/file-service");
+import * as FileService from "../../../services/file-service";
 
 const markdown1 = {
     name: "test book",
@@ -35,7 +34,7 @@ Hello 3
 
 suite("FlashcardService Test Suite", () => {
     test("generate should return flaschards from a book", async () => {
-        FileService.allMarkdowns = () => ([markdown1, markdown2]);
+        (FileService as any).allMarkdowns = () => ([markdown1, markdown2]);
         const flashcards = await FlashcardService.generate();
         assert.strictEqual(flashcards.length, 2);
         assert.strictEqual(flashcards[0].body, "Hello 1");
@@ -45,7 +44,7 @@ suite("FlashcardService Test Suite", () => {
     });
 
     test("generate should return less flashcards from books with less notes", async () => {
-        FileService.allMarkdowns = () => ([markdown1, markdown2]);
+        (FileService as any).allMarkdowns = () => ([markdown1, markdown2]);
         let book1 = 0;
         let book2 = 0;
         let invalid = 0;

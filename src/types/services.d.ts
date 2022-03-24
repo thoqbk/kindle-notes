@@ -1,6 +1,8 @@
 export interface Note {
     id: string;
     content: string;
+    excluded?: boolean;
+    location?: string;
 }
 
 export interface Book {

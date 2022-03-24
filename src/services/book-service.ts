@@ -1,5 +1,6 @@
 import { Page } from "puppeteer";
 import * as puppeteer from "puppeteer";
+import * as yaml from "js-yaml";
 import logger from "../logger";
 import config from "../config";
 import { Book, Note } from "../types/services";
@@ -160,10 +161,21 @@ name: "${book.name}"
 
 const toNotes = (markdownBody: string): Note[] => {
     const notes = markdownBody.split(/##\n/);
-    return notes.map(note => ({
+    return notes.map(toNote).filter(note => !!note.content);
+};
+
+const toNote = (markdown: string): Note => {
+    const retVal: Note = {
         id: "na",
-        content: note.trim(),
-    })).filter(note => !!note.content);
+        content: markdown.replace(/\<\!\-\-([^]+)\-\-\>/g, "").trim(),
+    };
+    const metadataBlock = markdown.match(/\<\!\-\-([^]+)\-\-\>/);
+    if (metadataBlock !== null && metadataBlock.length >= 2) {
+        const metadata: any = yaml.load(metadataBlock[1]);
+        retVal.location = metadata.location;
+        retVal.excluded = metadata.excluded;
+    }
+    return retVal;
 };
 
 const waitForVisibleAndClick = async (page: Page, selector: string) => {
