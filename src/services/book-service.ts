@@ -4,7 +4,7 @@ import * as yaml from "js-yaml";
 import logger from "../logger";
 import config from "../config";
 import * as Pages from "../utils/pages";
-import { Book, Note } from "../types/services";
+import { Book, Note, RawNote } from "../types/services";
 
 const fm = require("front-matter");
 
@@ -90,13 +90,13 @@ const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<N
     await notesPage.waitForSelector(bookMetadataSelector, { visible: true });
 
     // getting notes
-    const retVal: Note[] = await notesPage.$$eval(
+    const rawNotes = await notesPage.$$eval(
         noteBlocksSelector,
-        Pages.extractNotePageFn,
+        Pages.extractRawNotePageFn,
         noteSelector, highlightHeaderSelector
     );
-    logger.info(`Found ${retVal.length} notes for book ${bookId}`);
-    return retVal;
+    logger.info(`Found ${rawNotes.length} raw-notes for book ${bookId}`);
+    return rawNotes.map(rawNoteToNote);
 };
 
 const ensureNotesPage = async (browser: puppeteer.Browser): Promise<Page> => {
@@ -194,4 +194,19 @@ const noteToMarkdown = (note: Note): string => {
 const waitForVisibleAndClick = async (page: Page, selector: string) => {
     await page.waitForSelector(selector, { visible: true });
     await page.click(selector);
+};
+
+const rawNoteToNote = (note: RawNote): Note => {
+    const idItems = note?.rawId.split("-");
+    const id = (idItems && idItems.length === 2 && idItems[1]) || "";
+
+    const pageItems = note.highlightHeader?.split("Page:");
+    const locationItems = note.highlightHeader?.split("Location:");
+
+    return {
+        id,
+        content: note.content,
+        page: pageItems?.length === 2 ? +(pageItems[1].replace(/\D/g, "")) : undefined,
+        location: locationItems?.length === 2 ? +locationItems[1].replace(/\D/g, "") : undefined
+    };
 };

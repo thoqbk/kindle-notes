@@ -6,6 +6,16 @@ export interface Note {
     page?: number;
 }
 
+/**
+ * Raw note evaluated inside read.amazon.com
+ * The object will later be transformed to Note
+ */
+export interface RawNote {
+    rawId: string;
+    highlightHeader: string;
+    content: string;
+}
+
 export interface Book {
     id: string;
     name: string;
