@@ -1,4 +1,5 @@
 import * as assert from "assert";
+import { expect } from "chai";
 import * as BookingService from "../../../services/book-service";
 import { Book } from "../../../types/services";
 
@@ -52,5 +53,48 @@ suite("BookService Test Suite", () => {
         assert.strictEqual(note2.location, 123);
         assert.strictEqual(note2.page, 98);
         assert.strictEqual(note2.excluded, true);
+    });
+
+    test("copyMetadata should copy user fields to target", () => {
+        const from: Book = {
+            id: "133",
+            name: "old-name",
+            author: "test-author",
+            photo: "test-photo",
+            notes: [{
+                hash: "v-78",
+                content: "test-content",
+                excluded: true,
+                location: 1,
+                page: 2,
+            }, {
+                hash: "v-22",
+                content: "test-content-22",
+                excluded: true,
+                location: 8,
+                page: 9,
+            }]
+        };
+        const to: Book = {
+            id: "133",
+            name: "new-name",
+            author: "test-author",
+            photo: "test-photo",
+            notes: [{
+                hash: "v-78",
+                content: "test-content-78",
+                location: 9,
+                page: 10,
+            }]
+        };
+        BookingService.copyMetadata(from, to);
+        expect(to.notes).has.lengthOf(1);
+        expect(to.notes[0]).eql({
+            hash: "v-78",
+            content: "test-content-78",
+            excluded: true,
+            location: 9,
+            page: 10,
+        });
     });
 });

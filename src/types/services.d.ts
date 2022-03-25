@@ -1,5 +1,5 @@
 export interface Note {
-    id: string;
+    id?: string;
     hash: string;
     content: string;
     excluded?: boolean;

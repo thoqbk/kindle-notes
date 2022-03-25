@@ -11,9 +11,14 @@ export const syncBooks = async () => {
     logger.info("Syncing books from Kindle");
     const markdowns = await FileService.allMarkdowns();
     const fileNames = _.fromPairs(markdowns.map(md => [md.id, md.fileName]));
+    const existingBooks = _.fromPairs(markdowns.map(md => [md.id, BookService.markdownToBook(md.content)]));
     const books = await BookService.fetchBooks();
     for (const book of books) {
-        let filePath = path.join(config.flashcardsHomePath, fileNames[book.id] || toMarkdownFileName(book));
+        const filePath = path.join(config.flashcardsHomePath, fileNames[book.id] || toMarkdownFileName(book));
+        const existingBook = existingBooks[book.id];
+        if (existingBook) {
+            BookService.copyMetadata(existingBook, book);
+        }
         await fs.writeFile(filePath, BookService.toMarkdown(book), "utf8");
     }
     logger.info("Sync books successfully");

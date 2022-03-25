@@ -1,6 +1,6 @@
+import * as _ from "lodash";
 import { Page } from "puppeteer";
 import * as puppeteer from "puppeteer";
-import * as yaml from "js-yaml";
 import logger from "../logger";
 import config from "../config";
 import * as Pages from "../utils/pages";
@@ -8,9 +8,6 @@ import * as Transformers from "../utils/transformers";
 import { Book, Note } from "../types/services";
 
 const fm = require("front-matter");
-
-const defaultNoteId = "na";
-const defaultHash = "na";
 
 const notesPageUrl = "https://read.amazon.com/notebook";
 const emailSelector = "input[type='email']";
@@ -80,6 +77,17 @@ export const markdownToBook = (markdown: string): Book => {
         photo: frontMatter.attributes.photo,
         notes: toNotes(frontMatter.body),
     };
+};
+
+export const copyMetadata = (from: Book, to: Book) => {
+    const fromNotes: {
+        [key: string]: Note
+    } = _.fromPairs(from.notes.map(note => ([note.hash, note])));
+    for (const note of to.notes) {
+        if (fromNotes[note.hash]) {
+            note.excluded = fromNotes[note.hash].excluded;
+        }
+    }
 };
 
 const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<Note[]> => {
@@ -159,26 +167,11 @@ name: "${book.name}"
 };
 
 const toNotes = (markdownBody: string): Note[] => {
-    const notes = markdownBody.split(/##\n/);
-    return notes.map(toNote).filter(note => !!note.content);
-};
-
-const toNote = (markdown: string): Note => {
-    const retVal: Note = {
-        id: defaultNoteId,
-        content: markdown.replace(/\<\!\-\-([^]+)\-\-\>/g, "").trim(),
-        hash: defaultHash,
-    };
-    const metadataBlock = markdown.match(/\<\!\-\-([^]+)\-\-\>/);
-    if (metadataBlock !== null && metadataBlock.length >= 2) {
-        const metadata: any = yaml.load(metadataBlock[1]);
-        retVal.location = metadata.location;
-        retVal.excluded = metadata.excluded;
-        retVal.page = metadata.page;
-        retVal.hash ||= metadata.hash;
-        retVal.id ||= metadata.id;
-    }
-    return retVal;
+    const notes = markdownBody.split("##\n");
+    return notes
+        .map(note => (`##\n${note}`))
+        .map(Transformers.mardownToNote)
+        .filter(note => !!note.content);
 };
 
 const waitForVisibleAndClick = async (page: Page, selector: string) => {
