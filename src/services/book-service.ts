@@ -63,7 +63,7 @@ export const fetchBooks = async (): Promise<Book[]> => {
 export const toMarkdown = (book: Book): string => {
     let retVal = frontMatter(book);
     for (const note of book.notes) {
-        retVal += noteToMarkdown(note);
+        retVal += Transformers.noteToMarkdown(note);
     }
     return retVal;
 };
@@ -179,23 +179,6 @@ const toNote = (markdown: string): Note => {
         retVal.id ||= metadata.id;
     }
     return retVal;
-};
-
-const noteToMarkdown = (note: Note): string => {
-    let metadata = "";
-    if (note.excluded === true) {
-        metadata += (metadata && "\n") + "excluded: true";
-    }
-    if (!!note.location) {
-        metadata += (metadata && "\n") + `location: ${note.location}`;
-    }
-    if (!!note.page) {
-        metadata += (metadata && "\n") + `page: ${note.page}`;
-    }
-    if (metadata) {
-        metadata = `\n\n<!--\n${metadata}\n-->`;
-    }
-    return `\n##\n${note.content}${metadata}\n`;
 };
 
 const waitForVisibleAndClick = async (page: Page, selector: string) => {
