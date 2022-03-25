@@ -73,7 +73,7 @@ suite("FlashcardService Test Suite", () => {
         let book1 = 0;
         let book2 = 0;
         let invalid = 0;
-        for (let idx = 0; idx < 10; idx++) {
+        for (let idx = 0; idx < 100; idx++) {
             const flashcards = await FlashcardService.generate();
             if (flashcards[0].bookName === "test book") {
                 book1++;
