@@ -12,7 +12,9 @@ const emailSelector = "input[type='email']";
 const passwordSelector = "input[type='password']";
 const notesContainerSelector = "div#kp-notebook-annotations-pane";
 const bookMetadataSelector = "div#kp-notebook-annotations-pane span.kp-notebook-metadata";
-const notesSelector = "span#highlight";
+const noteBlocksSelector = "#kp-notebook-annotations .kp-notebook-row-separator";
+const noteSelector = "#highlight";
+const highlightHeaderSelector = "#annotationHighlightHeader";
 const booksSelector = "#kp-notebook-library .kp-notebook-library-each-book";
 const bookNameSelector = "a h2";
 const authorSelector = "a p";
@@ -56,10 +58,7 @@ export const fetchBooks = async (): Promise<Book[]> => {
 export const toMarkdown = (book: Book): string => {
     let retVal = frontMatter(book);
     for (const note of book.notes) {
-        retVal += `
-##
-${note.content}
-`;
+        retVal += noteToMarkdown(note);
     }
     return retVal;
 };
@@ -91,14 +90,29 @@ const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<N
 
     // getting notes
     const retVal: Note[] = await notesPage.$$eval(
-        notesSelector,
-        elements => elements.map(element => {
-            const idParts = element.parentElement?.id.split("-");
-            return {
-                content: element.textContent || "",
-                id: (idParts && idParts.length === 2 && idParts[1]) || "",
-            };
-        })
+        noteBlocksSelector,
+        (elements, noteSelector, highlightHeaderSelector) => {
+            return elements.map(element => {
+                const noteElement = element.querySelector(noteSelector as string);
+                const highlightElement = element.querySelector(highlightHeaderSelector as string);
+                if (noteElement === null || highlightElement === null) {
+                    return null;
+                }
+                const idItems = noteElement.parentElement?.id.split("-");
+                const id = (idItems && idItems.length === 2 && idItems[1]) || "";
+    
+                const pageItems = highlightElement.textContent?.split("Page:");
+                const locationItems = highlightElement.textContent?.split("Location:");
+    
+                return {
+                    content: noteElement.textContent || "",
+                    id,
+                    page: pageItems?.length === 2 ? +(pageItems[1].replace(/\D/g, "")) : undefined,
+                    location: locationItems?.length === 2 ? +locationItems[1].replace(/\D/g, "") : undefined
+                } as Note;
+            }).filter((note): note is Note => note !== null);
+        },
+        noteSelector, highlightHeaderSelector
     );
     logger.info(`Found ${retVal.length} notes for book ${bookId}`);
     return retVal;
@@ -177,6 +191,23 @@ const toNote = (markdown: string): Note => {
         retVal.page = metadata.page;
     }
     return retVal;
+};
+
+const noteToMarkdown = (note: Note): string => {
+    let metadata = "";
+    if (note.excluded === true) {
+        metadata += (metadata && "\n") + "excluded: true";
+    }
+    if (!!note.location) {
+        metadata += (metadata && "\n") + `location: ${note.location}`;
+    }
+    if (!!note.page) {
+        metadata += (metadata && "\n") + `page: ${note.page}`;
+    }
+    if (metadata) {
+        metadata = `\n\n<!--\n${metadata}\n-->`;
+    }
+    return `\n##\n${note.content}${metadata}\n`;
 };
 
 const waitForVisibleAndClick = async (page: Page, selector: string) => {
