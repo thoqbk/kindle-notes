@@ -4,7 +4,8 @@ import * as yaml from "js-yaml";
 import logger from "../logger";
 import config from "../config";
 import * as Pages from "../utils/pages";
-import { Book, Note, RawNote } from "../types/services";
+import * as Transformers from "../utils/transformers";
+import { Book, Note } from "../types/services";
 
 const fm = require("front-matter");
 
@@ -99,7 +100,7 @@ const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<N
         noteSelector, highlightHeaderSelector
     );
     logger.info(`Found ${rawNotes.length} raw-notes for book ${bookId}`);
-    return rawNotes.map(Pages.rawNoteToNote);
+    return rawNotes.map(Transformers.rawNoteToNote);
 };
 
 const ensureNotesPage = async (browser: puppeteer.Browser): Promise<Page> => {
