@@ -32,7 +32,14 @@ const submitResult = (level) => {
 const loadFlashcard = (payload) => {
     window.totalFlashcards = payload.totalFlashcards;
     $("#flashcard-body").text(payload.flashcard.body);
-    $("#flashcard-book-name").text(payload.flashcard.bookName);
+    let bookName = payload.flashcard.bookName;
+    if (payload.flashcard.location) {
+        bookName += ` (location: ${payload.flashcard.location})`;
+    }
+    if (payload.flashcard.page) {
+        bookName += ` (page: ${payload.flashcard.page})`;
+    }
+    $("#flashcard-book-name").text(bookName);
     $("#flashcard-progress").text(`${payload.flashcard.position + 1} of ${payload.totalFlashcards}`);
 };
 

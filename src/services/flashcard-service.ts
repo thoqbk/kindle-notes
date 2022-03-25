@@ -16,6 +16,8 @@ export const generate = async (): Promise<Flashcard[]> => {
         bookName: book.name,
         body: n.content,
         position: idx,
+        page: n.page,
+        location: n.location,
     }));
 };
 

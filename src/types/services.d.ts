@@ -36,5 +36,7 @@ export interface Markdown {
 export interface Flashcard {
     bookName?: string;
     body: string;
+    page?: number;
+    location?: number;
     position: number; // e.g. 1 of 10
 }
