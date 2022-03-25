@@ -8,6 +8,9 @@ import { Book, Note, RawNote } from "../types/services";
 
 const fm = require("front-matter");
 
+const defaultNoteId = "na";
+const defaultHash = "na";
+
 const notesPageUrl = "https://read.amazon.com/notebook";
 const emailSelector = "input[type='email']";
 const passwordSelector = "input[type='password']";
@@ -96,7 +99,7 @@ const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<N
         noteSelector, highlightHeaderSelector
     );
     logger.info(`Found ${rawNotes.length} raw-notes for book ${bookId}`);
-    return rawNotes.map(rawNoteToNote);
+    return rawNotes.map(Pages.rawNoteToNote);
 };
 
 const ensureNotesPage = async (browser: puppeteer.Browser): Promise<Page> => {
@@ -161,8 +164,9 @@ const toNotes = (markdownBody: string): Note[] => {
 
 const toNote = (markdown: string): Note => {
     const retVal: Note = {
-        id: "na",
+        id: defaultNoteId,
         content: markdown.replace(/\<\!\-\-([^]+)\-\-\>/g, "").trim(),
+        hash: defaultHash,
     };
     const metadataBlock = markdown.match(/\<\!\-\-([^]+)\-\-\>/);
     if (metadataBlock !== null && metadataBlock.length >= 2) {
@@ -170,6 +174,8 @@ const toNote = (markdown: string): Note => {
         retVal.location = metadata.location;
         retVal.excluded = metadata.excluded;
         retVal.page = metadata.page;
+        retVal.hash ||= metadata.hash;
+        retVal.id ||= metadata.id;
     }
     return retVal;
 };
@@ -194,19 +200,4 @@ const noteToMarkdown = (note: Note): string => {
 const waitForVisibleAndClick = async (page: Page, selector: string) => {
     await page.waitForSelector(selector, { visible: true });
     await page.click(selector);
-};
-
-const rawNoteToNote = (note: RawNote): Note => {
-    const idItems = note?.rawId.split("-");
-    const id = (idItems && idItems.length === 2 && idItems[1]) || "";
-
-    const pageItems = note.highlightHeader?.split("Page:");
-    const locationItems = note.highlightHeader?.split("Location:");
-
-    return {
-        id,
-        content: note.content,
-        page: pageItems?.length === 2 ? +(pageItems[1].replace(/\D/g, "")) : undefined,
-        location: locationItems?.length === 2 ? +locationItems[1].replace(/\D/g, "") : undefined
-    };
 };

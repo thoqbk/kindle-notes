@@ -40,6 +40,7 @@
 		"@types/glob": "^7.2.0",
 		"@types/js-yaml": "^4.0.5",
 		"@types/lodash": "^4.14.180",
+		"@types/md5": "^2.3.2",
 		"@types/mocha": "^9.1.0",
 		"@types/node": "14.x",
 		"@types/vscode": "^1.65.0",
@@ -57,6 +58,7 @@
 		"front-matter": "^4.0.2",
 		"js-yaml": "^4.1.0",
 		"lodash": "^4.17.21",
+		"md5": "^2.3.0",
 		"puppeteer": "^13.4.1"
 	}
 }
