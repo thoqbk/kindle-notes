@@ -41,15 +41,24 @@ export const noteToMarkdown = (note: Note): string => {
     if (metadata) {
         metadata = `\n\n<!--\n${metadata}\n-->`;
     }
-    return `\n##\n${note.content}${metadata}\n`;
+    let backside = "";
+    if (note.backside) {
+        backside = `\n\n%%\n\n${note.backside}`;
+    }
+    return `\n##\n${note.content}${backside}${metadata}\n`;
 };
 
 export const mardownToNote = (markdown: string): Note => {
+    const withoutMetadata = markdown.replace("##", "").replace(/\<\!\-\-([^]+)\-\-\>/g, "");
+    const contentItems = withoutMetadata.split(/\%\%\n+/);
     const retVal: Note = {
         id: defaultNoteId,
-        content: markdown.replace("##", "").replace(/\<\!\-\-([^]+)\-\-\>/g, "").trim(),
+        content: contentItems[0].trim(),
         hash: defaultHash,
     };
+    if (contentItems.length === 2 && contentItems[1].trim()) {
+        retVal.backside = contentItems[1].trim();
+    }
     const metadataBlock = markdown.match(/\<\!\-\-([^]+)\-\-\>/);
     if (metadataBlock !== null && metadataBlock.length >= 2) {
         const metadata: any = yaml.load(metadataBlock[1]);

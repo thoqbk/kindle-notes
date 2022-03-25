@@ -5,6 +5,12 @@ import * as Transformers from "../../../utils/transformers";
 const noteMarkdown = `##
 
 Hello
+
+%%
+
+Backside line 1
+Backside line 2
+
 <!--
 location: 318
 hash: QqUtgYTyU1n6ZHfst7dMkw==
@@ -35,14 +41,29 @@ suite("Transformers Util Test Suite", () => {
         expect(result.indexOf("hash: ZGFkc2FkZTEyeA==")).greaterThanOrEqual(0);
     });
 
+    test("noteToMarkdown should persist backside", () => {
+        const note: Note = {
+            id: "test-id-999",
+            hash: "ZGFkc2VvvTEyeA==",
+            content: "test-content 747",
+            backside: "this is backside content"
+        };
+        const result = Transformers.noteToMarkdown(note);
+        expect(result).to.contain("%%\n\nthis is backside content");
+    });
+
     test("markdownToNote should extract metadata fields", () => {
         const result = Transformers.mardownToNote(noteMarkdown);
-        expect(result).eql({
+        expect(result).to.include({
             content: "Hello",
             location: 318,
-            id: "",
             hash: "QqUtgYTyU1n6ZHfst7dMkw==",
             excluded: true
         });
+    });
+
+    test("markdownToNote should extract backside note", () => {
+        const result = Transformers.mardownToNote(noteMarkdown);
+        expect(result.backside).equal("Backside line 1\nBackside line 2");
     });
 });

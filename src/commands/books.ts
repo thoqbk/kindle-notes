@@ -17,7 +17,7 @@ export const syncBooks = async () => {
         const filePath = path.join(config.flashcardsHomePath, fileNames[book.id] || toMarkdownFileName(book));
         const existingBook = existingBooks[book.id];
         if (existingBook) {
-            BookService.copyMetadata(existingBook, book);
+            BookService.copyUserData(existingBook, book);
         }
         await fs.writeFile(filePath, BookService.toMarkdown(book), "utf8");
     }

@@ -79,13 +79,17 @@ export const markdownToBook = (markdown: string): Book => {
     };
 };
 
-export const copyMetadata = (from: Book, to: Book) => {
+/**
+ * Copy user-data e.g. backside, excluded
+ */
+export const copyUserData = (from: Book, to: Book) => {
     const fromNotes: {
         [key: string]: Note
     } = _.fromPairs(from.notes.map(note => ([note.hash, note])));
     for (const note of to.notes) {
         if (fromNotes[note.hash]) {
             note.excluded = fromNotes[note.hash].excluded;
+            note.backside = fromNotes[note.hash].backside;
         }
     }
 };

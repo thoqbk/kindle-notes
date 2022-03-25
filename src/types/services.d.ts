@@ -2,6 +2,7 @@ export interface Note {
     id?: string;
     hash: string;
     content: string;
+    backside?: string;
     excluded?: boolean;
     location?: number;
     page?: number;

@@ -55,7 +55,7 @@ suite("BookService Test Suite", () => {
         assert.strictEqual(note2.excluded, true);
     });
 
-    test("copyMetadata should copy user fields to target", () => {
+    test("copyUserData should copy user fields to target", () => {
         const from: Book = {
             id: "133",
             name: "old-name",
@@ -66,6 +66,7 @@ suite("BookService Test Suite", () => {
                 content: "test-content",
                 excluded: true,
                 location: 1,
+                backside: "this-is-old-backside",
                 page: 2,
             }, {
                 hash: "v-22",
@@ -87,11 +88,12 @@ suite("BookService Test Suite", () => {
                 page: 10,
             }]
         };
-        BookingService.copyMetadata(from, to);
+        BookingService.copyUserData(from, to);
         expect(to.notes).has.lengthOf(1);
         expect(to.notes[0]).eql({
             hash: "v-78",
             content: "test-content-78",
+            backside: "this-is-old-backside",
             excluded: true,
             location: 9,
             page: 10,
