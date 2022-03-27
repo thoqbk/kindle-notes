@@ -52,6 +52,16 @@ export const getFileContent = async (filePath: string): Promise<string | null> =
     return retVal;
 };
 
+/**
+ * 
+ * @param folderPath relative folderPath e.g. `out/web`
+ * @param extension e.g. `.js`
+ */
+export const getFileNames = async (folderPath: string, extension?: string): Promise<string[]> => {
+    const fileNames = await fs.readdir(path.join(config.extensionPath, folderPath));
+    return fileNames.filter(fn => !extension || path.extname(fn) === extension);
+};
+
 const exists = async (fullFilePath: string): Promise<boolean> => {
     try {
         fs.access(fullFilePath, fsConstants.F_OK);

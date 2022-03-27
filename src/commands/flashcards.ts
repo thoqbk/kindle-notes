@@ -20,7 +20,7 @@ export const openFlashcards = async (context: vscode.ExtensionContext) => {
     }
     const webviewOption: vscode.WebviewOptions = {
         enableScripts: true,
-        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "web")]
+        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "out", "web")]
     };
     currentPanel = vscode.window.createWebviewPanel(viewType, "Cat Coding", column, webviewOption);
     currentPanel.webview.html = await getHtmlForWebView(currentPanel.webview, context);
@@ -30,11 +30,31 @@ export const openFlashcards = async (context: vscode.ExtensionContext) => {
 };
 
 const getHtmlForWebView = async (webview: vscode.Webview, context: vscode.ExtensionContext): Promise<string> => {
-    const retVal = await FileService.getFileContent("web/index.html") || "content not found";
+    const cssFileNames = await FileService.getFileNames(path.join("out", "web", "static", "css"), ".css");
+    const jsFileNames = await FileService.getFileNames(path.join("out", "web", "static", "js"), ".js");
+    if (!cssFileNames.length || !jsFileNames.length) {
+        return "content not found";
+    }
     const root = webview.asWebviewUri(vscode.Uri.file(
-        path.join(context.extensionPath, "web")
-    ));
-    return retVal.replace(/__ROOT__/g, root.toString());
+        path.join(context.extensionPath, "out", "web", "static")
+    )).toString();
+    const cssLinks = cssFileNames.map(fn => `<link href="${root}/css/${fn}" rel="stylesheet">`).join("\n");
+    const jsLinks = jsFileNames.map(fn => `<script defer="defer" src="${root}/js/${fn}"></script>`).join("\n");
+    return `
+        <!doctype html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <title>Kindle Notes UI</title>
+            ${jsLinks}
+            ${cssLinks}
+        </head>
+        <body>
+            <div id="root"></div>
+        </body>
+        </html>
+    `;
 };
 
 const onDidReceiveMessage = (message: any) => {

@@ -15,7 +15,7 @@ const extensionId = "thoqbk.kindle-notes";
 const extensionPath = vscode.extensions.getExtension(extensionId)?.extensionPath || "/tmp";
 const dataPath = path.join(extensionPath, "data");
 const browserDataPath = path.join(dataPath, "browser");
-const webPath = path.join(extensionPath, "web");
+const webPath = path.join(extensionPath, "out", "web");
 
 files.checkAndCreate(dataPath);
 files.checkAndCreate(browserDataPath);
