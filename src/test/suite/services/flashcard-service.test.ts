@@ -14,6 +14,9 @@ name: "test book"
 ##
 Hello 1
 
+%%
+backside line 1
+
 ##
 Hello 2
 ##
@@ -60,11 +63,12 @@ suite("FlashcardService Test Suite", () => {
         (FileService as any).allMarkdowns = () => ([markdown1]);
         const flashcards = await FlashcardService.generate();
         assert.strictEqual(flashcards.length, 3);
-        assert.strictEqual(flashcards[0].body, "Hello 1");
+        assert.strictEqual(flashcards[0].content, "Hello 1");
+        assert.strictEqual(flashcards[0].backside, "backside line 1");
         assert.strictEqual(flashcards[0].position, 0);
-        assert.strictEqual(flashcards[1].body, "Hello 2");
+        assert.strictEqual(flashcards[1].content, "Hello 2");
         assert.strictEqual(flashcards[1].position, 1);
-        assert.strictEqual(flashcards[2].body, "Hello 3");
+        assert.strictEqual(flashcards[2].content, "Hello 3");
         assert.strictEqual(flashcards[2].position, 2);
     });
 
@@ -92,6 +96,6 @@ suite("FlashcardService Test Suite", () => {
         (FileService as any).allMarkdowns = () => ([markdown3]);
         const flashcards = await FlashcardService.generate();
         assert.strictEqual(flashcards.length, 1);
-        assert.strictEqual(flashcards[0].body, "Hello 5");
+        assert.strictEqual(flashcards[0].content, "Hello 5");
     });
 });

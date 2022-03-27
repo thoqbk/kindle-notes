@@ -14,7 +14,8 @@ export const generate = async (): Promise<Flashcard[]> => {
     const notes = pickNotes(book);
     return notes.map((n, idx) => ({
         bookName: book.name,
-        body: n.content,
+        content: n.content,
+        backside: n.backside,
         position: idx,
         page: n.page,
         location: n.location,
