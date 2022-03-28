@@ -12,14 +12,27 @@
 	],
 	"activationEvents": [
 		"onCommand:kindle-notes.study",
+		"onCommand:kindle-notes.studyThisFile",
 		"onCommand:kindle-notes.syncBooks"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "kindle-notes.studyThisFile",
+					"when": "editorLangId == markdown"
+				}
+			]
+		},
 		"commands": [
 			{
 				"command": "kindle-notes.study",
 				"title": "Kindle Notes: Study"
+			},
+			{
+				"command": "kindle-notes.studyThisFile",
+				"title": "Kindle Notes: Study This File"
 			},
 			{
 				"command": "kindle-notes.syncBooks",

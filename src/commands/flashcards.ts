@@ -11,7 +11,7 @@ let currentPanel: vscode.WebviewPanel | null = null;
 
 const viewType = "catCoding";
 
-export const openFlashcards = async (context: vscode.ExtensionContext) => {
+export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: string) => {
     const column = vscode.window.activeTextEditor?.viewColumn || vscode.ViewColumn.One;
     if (currentPanel !== null) {
         logger.info("There's already a Kindle Notes webview, make it active instead of creating a new one");
@@ -26,7 +26,7 @@ export const openFlashcards = async (context: vscode.ExtensionContext) => {
     currentPanel.webview.html = await getHtmlForWebView(currentPanel.webview, context);
     currentPanel.webview.onDidReceiveMessage(onDidReceiveMessage);
     currentPanel.onDidDispose(onDidDispose, null, context.subscriptions);
-    currentFlashcards = await FlashcardService.generate();
+    currentFlashcards = await FlashcardService.generate(bookId);
 };
 
 const getHtmlForWebView = async (webview: vscode.Webview, context: vscode.ExtensionContext): Promise<string> => {

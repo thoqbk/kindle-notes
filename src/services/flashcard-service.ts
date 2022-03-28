@@ -5,10 +5,10 @@ import * as BookService from "../services/book-service";
 
 const numberOfFlashcards = 10;
 
-export const generate = async (): Promise<Flashcard[]> => {
+export const generate = async (bookId?: string): Promise<Flashcard[]> => {
     const books = await loadBooksFromMarkdownFiles();
-    const book = pickBook(books);
-    if (book === null) {
+    const book = bookId ? books.find(b => b.id === bookId) : pickBook(books);
+    if (!book) {
         return [];
     }
     const notes = pickNotes(book);
