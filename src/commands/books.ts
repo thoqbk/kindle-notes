@@ -14,7 +14,7 @@ export const syncBooks = async () => {
     const existingBooks = _.fromPairs(markdowns.map(md => [md.id, BookService.markdownToBook(md.content)]));
     const books = await BookService.fetchBooks();
     for (const book of books) {
-        const filePath = path.join(config.flashcardsHomePath, fileNames[book.id] || toMarkdownFileName(book));
+        const filePath = path.join(config.getFlashcardsHomePath(), fileNames[book.id] || toMarkdownFileName(book));
         const existingBook = existingBooks[book.id];
         if (existingBook) {
             BookService.copyUserData(existingBook, book);

@@ -38,7 +38,22 @@
 				"command": "kindle-notes.syncBooks",
 				"title": "Kindle Notes: Sync Books"
 			}
-		]
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Kindle Notes",
+			"properties": {
+				"kindle-notes.flashcardsHomePath": {
+					"type": "string",
+					"description": "Path to flashcards repo directory"
+				},
+				"kindle-notes.headlessBrowser": {
+					"type": "boolean",
+					"default": true,
+					"description": "false to show Chromium browser while syncing books and notes from Kindle. Default is true"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

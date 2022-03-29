@@ -145,7 +145,7 @@ const ensureNotesPage = async (browser: puppeteer.Browser): Promise<Page> => {
 
 const launchBrowser = async (): Promise<puppeteer.Browser> => {
     return puppeteer.launch({
-        headless: config.headless,
+        headless: config.isHeadless(),
         userDataDir: config.browserDataPath,
     });
 };
