@@ -34,6 +34,8 @@ export interface Markdown {
 }
 
 export interface Flashcard {
+    hash: string;
+    bookId: string;
     bookName?: string;
     content: string;
     backside?: string;

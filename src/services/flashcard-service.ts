@@ -2,6 +2,7 @@ import * as _ from "lodash";
 import { Book, Flashcard, Note } from "../types/services";
 import * as FileService from "../services/file-service";
 import * as BookService from "../services/book-service";
+import * as Transformers from "../utils/transformers";
 
 const numberOfFlashcards = 10;
 
@@ -12,14 +13,7 @@ export const generate = async (bookId?: string): Promise<Flashcard[]> => {
         return [];
     }
     const notes = pickNotes(book);
-    return notes.map((n, idx) => ({
-        bookName: book.name,
-        content: n.content,
-        backside: n.backside,
-        position: idx,
-        page: n.page,
-        location: n.location,
-    }));
+    return notes.map((n, idx) => Transformers.noteToFlashcard(book, n, idx));
 };
 
 const loadBooksFromMarkdownFiles = async (): Promise<Book[]> => {

@@ -1,9 +1,12 @@
 import * as vscode from "vscode";
 import * as FileService from "../services/file-service";
+import * as BookService from "../services/book-service";
 import * as FlashcardService from "../services/flashcard-service";
 import * as path from "path";
-import { Flashcard } from "../types/services";
+import { Flashcard, Note } from "../types/services";
+import * as Transformers from "../utils/transformers";
 import logger from "../logger";
+import _ = require("lodash");
 
 let currentFlashcardIdx = -1;
 let currentFlashcards: Flashcard[] = [];
@@ -57,11 +60,11 @@ const getHtmlForWebView = async (webview: vscode.Webview, context: vscode.Extens
     `;
 };
 
-const onDidReceiveMessage = (message: any) => {
+const onDidReceiveMessage = async (message: any) => {
     logger.info(`Receiving new request from webview ${message.type}`);
     switch (message.type) {
-        case "firstFlashcard": {
-            firstFlashcard();
+        case "initFlashcard": { // received when the webview gets activated
+            initFlashcard();
             break;
         }
         case "submitResult": {
@@ -86,7 +89,7 @@ const onDidDispose = () => {
     logger.info("Released resources because webview was disposed");
 };
 
-const firstFlashcard = () => {
+const initFlashcard = async () => {
     if (currentPanel === null) {
         return;
     }
@@ -94,7 +97,8 @@ const firstFlashcard = () => {
         nextFlashcard();
         return;
     }
-    sendCurrentFlashcard(currentPanel, "firstFlashcard");
+    await refreshCards();
+    sendCurrentFlashcard(currentPanel, "initFlashcard");
 };
 
 const nextFlashcard = () => {
@@ -119,4 +123,29 @@ const sendCurrentFlashcard = (panel: vscode.WebviewPanel, type: string) => {
             type: "completed",
         });
     }
+};
+
+const refreshCards = async () => {
+    if (!currentFlashcards.length) {
+        return;
+    }
+    const bookId = currentFlashcards[0].bookId;
+    const book = await BookService.getBook(bookId);
+    if (!book) {
+        logger.info(`Cannot refresh card, book not found ${bookId}`);
+        return;
+    }
+    const notes: {
+        [key: string]: Note
+    } = _.fromPairs(book.notes.map(n => ([n.hash, n])));
+    const newFlashcards = [];
+    for (const flashcard of currentFlashcards) {
+        const note = notes[flashcard.hash];
+        if (!note) {
+            newFlashcards.push(flashcard);
+        } else {
+            newFlashcards.push(Transformers.noteToFlashcard(book, note, flashcard.position));
+        }
+    }
+    currentFlashcards = newFlashcards;
 };

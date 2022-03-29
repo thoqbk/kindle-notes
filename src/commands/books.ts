@@ -12,7 +12,7 @@ export const syncBooks = async () => {
     const markdowns = await FileService.allMarkdowns();
     const fileNames = _.fromPairs(markdowns.map(md => [md.id, md.fileName]));
     const existingBooks = _.fromPairs(markdowns.map(md => [md.id, BookService.markdownToBook(md.content)]));
-    const books = await BookService.fetchBooks();
+    const books = await BookService.fetchBooksFromKindle();
     for (const book of books) {
         const filePath = path.join(config.getFlashcardsHomePath(), fileNames[book.id] || toMarkdownFileName(book));
         const existingBook = existingBooks[book.id];

@@ -6,6 +6,7 @@ import config from "../config";
 import * as Pages from "../utils/pages";
 import * as Transformers from "../utils/transformers";
 import { Book, Note } from "../types/services";
+import * as FileService from "../services/file-service";
 
 const fm = require("front-matter");
 
@@ -22,7 +23,7 @@ const bookNameSelector = "a h2";
 const authorSelector = "a p";
 const bookPhotoSelector = "a div.a-row img";
 
-export const fetchBooks = async (): Promise<Book[]> => {
+export const fetchBooksFromKindle = async (): Promise<Book[]> => {
     const browser = await launchBrowser();
     const notesPage = await ensureNotesPage(browser);
 
@@ -55,6 +56,17 @@ export const fetchBooks = async (): Promise<Book[]> => {
     await browser.close();
     logger.info("Browser closed");
     return books;
+};
+
+/**
+ * Get book from markdown files. Return null if not found
+ */
+export const getBook = async (id: string): Promise<Book | null> => {
+    const markdown = await FileService.getMarkdown(id);
+    if (!markdown) {
+        return null;
+    }
+    return markdownToBook(markdown.content);
 };
 
 export const toMarkdown = (book: Book): string => {

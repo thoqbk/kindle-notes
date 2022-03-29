@@ -1,7 +1,7 @@
 import { Buffer as Transformers } from "buffer";
 import * as yaml from "js-yaml";
 import * as md5 from "md5";
-import { Note, RawNote } from "../types/services";
+import { Book, Flashcard, Note, RawNote } from "../types/services";
 
 const defaultNoteId = "";
 const defaultHash = "";
@@ -75,4 +75,17 @@ export const mardownToNote = (markdown: string): Note => {
         retVal.id = metadata.id || retVal.id;
     }
     return retVal;
+};
+
+export const noteToFlashcard = (book: Book, note: Note, position: number): Flashcard => {
+    return {
+        hash: note.hash,
+        bookId: book.id,
+        bookName: book.name,
+        content: note.content,
+        backside: note.backside,
+        position,
+        page: note.page,
+        location: note.location,
+    };
 };

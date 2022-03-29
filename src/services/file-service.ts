@@ -34,6 +34,11 @@ export const allMarkdowns = async (): Promise<Markdown[]> => {
     return retVal;
 };
 
+export const getMarkdown = async (id: string): Promise<Markdown | null> => {
+    const markdowns = await allMarkdowns();
+    return markdowns.find(md => md.id === id) || null;
+};
+
 /**
 * Read and cache file content. Return null if file not found
 * @param filePath: relative file path from extension root folder
