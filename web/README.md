@@ -1,4 +1,4 @@
-# kindle-notes-ui
+# kindle-notes-web
 
 Webview UI for `kindle-notes` extension
 

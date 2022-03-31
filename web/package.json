@@ -1,5 +1,5 @@
 {
-  "name": "kindle-notes-ui",
+  "name": "kindle-notes-web",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -23,7 +23,7 @@
     "start": "react-scripts start",
     "build": "GENERATE_SOURCEMAP=false react-scripts build && npm run copy",
     "test": "react-scripts test",
-    "copy": "rm -rf ../out/web && cp -r build ../out/web"
+    "copy": "rm -rf ../out/web && mkdir -p ../out && cp -r build ../out/web"
   },
   "eslintConfig": {
     "extends": [
