@@ -112,7 +112,6 @@ const sendCurrentFlashcard = (panel: vscode.WebviewPanel, type: string) => {
             type,
             payload: {
                 flashcard: currentFlashcards[currentFlashcardIdx],
-                totalFlashcards: currentFlashcards.length,
             },
         });
     } else {
