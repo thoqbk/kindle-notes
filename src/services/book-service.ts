@@ -28,10 +28,12 @@ export const getBook = async (bookId: string): Promise<Book | undefined> => {
 export const saveBooks = async (books: Book[]): Promise<void> => {
     logger.info(`Saving ${books.length} books to markdown files`);
     const markdowns = await allMarkdowns();
+    const allFileNames = markdowns.map(md => md.fileName);
     const fileNames = _.fromPairs(markdowns.map(md => [md.bookId, md.fileName]));
     const existingBooks = _.fromPairs(markdowns.map(md => [md.bookId, Transformers.markdownToBook(md.content)]));
     for (const book of books) {
-        const filePath = path.join(config.getFlashcardsHomePath(), fileNames[book.id] || Files.determineFileName(book.name));
+        const defaultFileName = suffixFileName(Files.determineFileName(book.name), allFileNames);
+        const filePath = path.join(config.getFlashcardsHomePath(), fileNames[book.id] || defaultFileName);
         const existingBook = existingBooks[book.id];
         if (existingBook) {
             copyUserData(existingBook, book);
@@ -65,7 +67,7 @@ const allMarkdowns = async (): Promise<Markdown[]> => {
     const fileNames = await fs.readdir(config.getFlashcardsHomePath());
     const markdownFiles = fileNames.filter(fileName => path.extname(fileName) === ".md");
     logger.info(`Found ${markdownFiles.length} markdown files`);
-    
+
     for (const markdownFile of markdownFiles) {
         const data = await fs.readFile(path.join(config.getFlashcardsHomePath(), markdownFile), "utf8");
         const content = fm(data);
@@ -84,7 +86,7 @@ const allMarkdowns = async (): Promise<Markdown[]> => {
 /**
  * Copy user-data e.g. backside, excluded
  */
- const copyUserData = (from: Book, to: Book) => {
+const copyUserData = (from: Book, to: Book) => {
     const fromFlashcards: {
         [key: string]: Flashcard
     } = _.fromPairs(from.flashcards.map(fc => ([fc.hash, fc])));
@@ -94,4 +96,16 @@ const allMarkdowns = async (): Promise<Markdown[]> => {
             fc.backside = fromFlashcards[fc.hash].backside;
         }
     }
+};
+
+const suffixFileName = (originalFileName: string, allFileNames: string[]): string => {
+    let retVal = originalFileName;
+    for (let suffix = 2; suffix < 10; suffix++) {
+        if (allFileNames.indexOf(retVal) >= 0) {
+            retVal = `${path.parse(originalFileName).name}-${suffix}.md`;
+        } else {
+            return retVal;
+        }
+    }
+    throw new Error(`Cannot find a unique name for the originalFileName ${originalFileName}`);
 };
