@@ -1,33 +1,11 @@
-import * as path from "path";
-import * as fs from "fs/promises";
 import * as _ from "lodash";
-import config from "../config";
 import logger from "../logger";
+import * as KindleService from "../services/kindle-service";
 import * as BookService from "../services/book-service";
-import * as FileService from "../services/file-service";
-import { Book } from "../types/services";
 
 export const syncBooks = async () => {
     logger.info("Syncing books from Kindle");
-    const markdowns = await FileService.allMarkdowns();
-    const fileNames = _.fromPairs(markdowns.map(md => [md.id, md.fileName]));
-    const existingBooks = _.fromPairs(markdowns.map(md => [md.id, BookService.markdownToBook(md.content)]));
-    const books = await BookService.fetchBooksFromKindle();
-    for (const book of books) {
-        const filePath = path.join(config.getFlashcardsHomePath(), fileNames[book.id] || toMarkdownFileName(book));
-        const existingBook = existingBooks[book.id];
-        if (existingBook) {
-            BookService.copyUserData(existingBook, book);
-        }
-        await fs.writeFile(filePath, BookService.toMarkdown(book), "utf8");
-    }
+    const books = await KindleService.fetchBooks();
+    await BookService.saveBooks(books);
     logger.info("Sync books successfully");
-};
-
-const toMarkdownFileName = (book: Book) => {
-    return book.name
-        .replace(/[^a-zA-z0-9\s]/g, "")
-        .replace(/\s+/g, "-")
-        .toLowerCase()
-        + ".md";
 };

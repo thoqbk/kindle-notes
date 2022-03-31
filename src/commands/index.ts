@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import logger from "../logger";
 import { openFlashcards } from "./flashcards";
-import * as BookService from "../services/book-service";
+import * as Transformers from "../utils/transformers";
 import { syncBooks } from "./books";
 import * as Files from "../utils/files";
 import config from "../config";
@@ -20,7 +20,7 @@ export const registerCommands = (context: vscode.ExtensionContext) => {
     context.subscriptions.push(vscode.commands.registerCommand(studyThisFileCommand, () => {
         runCommand(studyThisFileCommand, context, async () => {
             const markdown = vscode.window.activeTextEditor?.document?.getText() || "";
-            const book = BookService.markdownToBook(markdown);
+            const book = Transformers.markdownToBook(markdown);
             if (book.id) {
                 await openFlashcards(context, book.id);
             } else {

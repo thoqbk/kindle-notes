@@ -1,12 +1,13 @@
 import { Buffer as Transformers } from "buffer";
 import * as yaml from "js-yaml";
 import * as md5 from "md5";
-import { Book, Flashcard, Note, RawNote } from "../types/services";
+import { Book, Flashcard, Note } from "../types/services";
 
-const defaultNoteId = "";
+const fm = require("front-matter");
+
 const defaultHash = "";
 
-export const rawNoteToNote = (note: RawNote): Note => {
+export const noteToFlashcard = (note: Note): Flashcard => {
     const idItems = note?.rawId.split("-");
     const id = (idItems && idItems.length === 2 && idItems[1]) || "";
     const content = note.content?.trim();
@@ -16,7 +17,6 @@ export const rawNoteToNote = (note: RawNote): Note => {
     const locationItems = note.highlightHeader?.split("Location:");
 
     return {
-        id,
         content,
         hash,
         page: pageItems?.length === 2 ? +(pageItems[1].replace(/\D/g, "")) : undefined,
@@ -24,35 +24,34 @@ export const rawNoteToNote = (note: RawNote): Note => {
     };
 };
 
-export const noteToMarkdown = (note: Note): string => {
+export const flashcardToMarkdown = (flashcard: Flashcard): string => {
     let metadata = "";
-    if (note.excluded === true) {
+    if (flashcard.excluded === true) {
         metadata += (metadata && "\n") + "excluded: true";
     }
-    if (!!note.location) {
-        metadata += (metadata && "\n") + `location: ${note.location}`;
+    if (!!flashcard.location) {
+        metadata += (metadata && "\n") + `location: ${flashcard.location}`;
     }
-    if (!!note.page) {
-        metadata += (metadata && "\n") + `page: ${note.page}`;
+    if (!!flashcard.page) {
+        metadata += (metadata && "\n") + `page: ${flashcard.page}`;
     }
-    if (!!note.hash) {
-        metadata += (metadata && "\n") + `hash: ${note.hash}`;
+    if (!!flashcard.hash) {
+        metadata += (metadata && "\n") + `hash: ${flashcard.hash}`;
     }
     if (metadata) {
         metadata = `\n\n<!--\n${metadata}\n-->`;
     }
     let backside = "";
-    if (note.backside) {
-        backside = `\n\n%%\n\n${note.backside}`;
+    if (flashcard.backside) {
+        backside = `\n\n%%\n\n${flashcard.backside}`;
     }
-    return `\n##\n${note.content}${backside}${metadata}\n`;
+    return `\n##\n${flashcard.content}${backside}${metadata}\n`;
 };
 
-export const mardownToNote = (markdown: string): Note => {
+export const mardownToFlashcard = (markdown: string): Flashcard => {
     const withoutMetadata = markdown.replace("##", "").replace(/\<\!\-\-([^]+)\-\-\>/g, "");
     const contentItems = withoutMetadata.split(/\%\%\n+/);
-    const retVal: Note = {
-        id: defaultNoteId,
+    const retVal: Flashcard = {
         content: contentItems[0].trim(),
         hash: defaultHash,
     };
@@ -72,20 +71,44 @@ export const mardownToNote = (markdown: string): Note => {
             retVal.page = metadata.page;
         }
         retVal.hash = metadata.hash || retVal.hash;
-        retVal.id = metadata.id || retVal.id;
     }
     return retVal;
 };
 
-export const noteToFlashcard = (book: Book, note: Note, position: number): Flashcard => {
+export const bookToMarkdown = (book: Book): string => {
+    let retVal = frontMatter(book);
+    for (const flashcard of book.flashcards) {
+        retVal += flashcardToMarkdown(flashcard);
+    }
+    return retVal;
+};
+
+export const markdownToBook = (markdown: string): Book => {
+    const frontMatter = fm(markdown);
+    if (frontMatter.attributes === null) {
+        throw new Error(`Invalid markdown content ${markdown}`);
+    }
     return {
-        hash: note.hash,
-        bookId: book.id,
-        bookName: book.name,
-        content: note.content,
-        backside: note.backside,
-        position,
-        page: note.page,
-        location: note.location,
+        id: frontMatter.attributes.id,
+        name: frontMatter.attributes.name,
+        author: frontMatter.attributes.author,
+        photo: frontMatter.attributes.photo,
+        flashcards: toFlashcards(frontMatter.body),
     };
+};
+
+const toFlashcards = (markdownBody: string): Flashcard[] => {
+    const flashcards = markdownBody.split("##\n");
+    return flashcards
+        .map(fc => (`##\n${fc}`))
+        .map(mardownToFlashcard)
+        .filter(fc => !!fc.content);
+};
+
+const frontMatter = (book: Book) => {
+    return `---
+id: ${book.id}
+name: "${book.name}"
+---
+`;
 };

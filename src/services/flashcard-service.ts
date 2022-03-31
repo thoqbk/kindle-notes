@@ -1,28 +1,56 @@
 import * as _ from "lodash";
-import { Book, Flashcard, Note } from "../types/services";
-import * as FileService from "../services/file-service";
-import * as BookService from "../services/book-service";
-import * as Transformers from "../utils/transformers";
+import logger from "../logger";
+import { Book, Flashcard, FlashcardDto } from "../types/services";
+import * as BookService from "./book-service";
 
 const numberOfFlashcards = 10;
 
-export const generate = async (bookId?: string): Promise<Flashcard[]> => {
-    const books = await loadBooksFromMarkdownFiles();
+export const generate = async (bookId?: string): Promise<FlashcardDto[]> => {
+    const books = await BookService.allBooks();
     const book = bookId ? books.find(b => b.id === bookId) : pickBook(books);
     if (!book) {
         return [];
     }
-    const notes = pickNotes(book);
-    return notes.map((n, idx) => Transformers.noteToFlashcard(book, n, idx));
+    const flashcards = pickFlashcards(book);
+    return flashcards.map((fc, position) => ({
+        bookId: book.id,
+        bookName: book.name,
+        ...fc,
+        position,
+        totalFlashcards: flashcards.length,
+    }));
 };
 
-const loadBooksFromMarkdownFiles = async (): Promise<Book[]> => {
-    const markdowns = await FileService.allMarkdowns();
-    return markdowns.map(markdown => BookService.markdownToBook(markdown.content));
+export const refreshCards = async (refreshingFlashcards: FlashcardDto[]): Promise<FlashcardDto[]> => {
+    if (!refreshingFlashcards.length) {
+        return [];
+    }
+    const bookId = refreshingFlashcards[0].bookId;
+    const book = await BookService.getBook(bookId);
+    if (!book) {
+        logger.info(`Cannot refresh card, book not found ${bookId}`);
+        return refreshingFlashcards;
+    }
+    const flashcards: {
+        [key: string]: Flashcard
+    } = _.fromPairs(book.flashcards.map(n => ([n.hash, n])));
+    const retVal: FlashcardDto[] = [];
+    for (const refreshing of refreshingFlashcards) {
+        const existing = flashcards[refreshing.hash];
+        if (!existing) {
+            retVal.push(refreshing);
+        } else {
+            retVal.push({
+                ...refreshing,
+                ...existing,
+            });
+        }
+    }
+    return retVal;
 };
 
 const pickBook = (books: Book[]): Book | null => {
-    const totalNotes = _.sumBy(books, book => book.notes.filter(filterValidNote).length);
+    const totalNotes = _.sumBy(books, book => book.flashcards.filter(filterValidFlashcard).length);
     if (totalNotes === 0) {
         return null;
     }
@@ -30,7 +58,7 @@ const pickBook = (books: Book[]): Book | null => {
     let prev = 0;
     for (const book of books) {
         const start = prev + 1;
-        const end = prev + book.notes.filter(filterValidNote).length;
+        const end = prev + book.flashcards.filter(filterValidFlashcard).length;
         if (rand >= start && rand <= end) {
             return book;
         }
@@ -39,12 +67,12 @@ const pickBook = (books: Book[]): Book | null => {
     return null;
 };
 
-const pickNotes = (book: Book): Note[] => {
-    const validNotes = book.notes.filter(filterValidNote);
-    if (validNotes.length <= numberOfFlashcards) {
-        return validNotes;
+const pickFlashcards = (book: Book): Flashcard[] => {
+    const validFlashcards = book.flashcards.filter(filterValidFlashcard);
+    if (validFlashcards.length <= numberOfFlashcards) {
+        return validFlashcards;
     }
-    const items = validNotes.map((n, idx) => ({
+    const items = validFlashcards.map((n, idx) => ({
         idx,
         note: n
     }));
@@ -52,4 +80,4 @@ const pickNotes = (book: Book): Note[] => {
     return _.sortBy(randomItems, item => item.idx).map(item => item.note);
 };
 
-const filterValidNote = (note: Note): boolean => !note.excluded;
+const filterValidFlashcard = (flashcard: Flashcard): boolean => !flashcard.excluded;

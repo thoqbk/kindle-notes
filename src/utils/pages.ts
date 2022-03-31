@@ -1,6 +1,6 @@
-import { RawNote } from "../types/services";
+import { Note } from "../types/services";
 
-export const extractRawNotePageFn = (elements: Element[], noteSelector: unknown, highlightHeaderSelector: unknown): RawNote[] => {
+export const extractRawNotePageFn = (elements: Element[], noteSelector: unknown, highlightHeaderSelector: unknown): Note[] => {
     return elements.map(element => {
         const noteElement = element.querySelector(noteSelector as string);
         const highlightElement = element.querySelector(highlightHeaderSelector as string);
@@ -12,5 +12,5 @@ export const extractRawNotePageFn = (elements: Element[], noteSelector: unknown,
             content: noteElement.textContent,
             highlightHeader: highlightElement.textContent,
         };
-    }).filter((note): note is RawNote => note !== null);
+    }).filter((note): note is Note => note !== null);
 };

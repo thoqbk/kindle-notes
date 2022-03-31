@@ -1,21 +1,20 @@
-export interface Note {
-    id?: string;
-    hash: string;
-    content: string;
-    backside?: string;
-    excluded?: boolean;
-    location?: number;
-    page?: number;
-}
-
 /**
  * Raw note evaluated inside read.amazon.com
  * The object will later be transformed to Note
  */
-export interface RawNote {
+export interface Note {
     rawId: string;
     highlightHeader: string;
     content: string;
+}
+
+export interface Flashcard {
+    hash: string; // unique within the book
+    content: string;
+    backside?: string;
+    excluded?: boolean;
+    page?: number;
+    location?: number;
 }
 
 export interface Book {
@@ -23,23 +22,23 @@ export interface Book {
     name: string;
     author: string;
     photo: string;
-    notes: Note[];
+    flashcards: Flashcard[];
 }
 
-export interface Markdown {
-    id?: string;
-    name: string;
-    fileName: string;
-    content: string;
-}
-
-export interface Flashcard {
-    hash: string;
+/**
+ * Sent to UI
+ */
+export interface FlashcardDto {
     bookId: string;
-    bookName?: string;
+    bookName: string;
+
+    hash: string;
     content: string;
     backside?: string;
+    excluded?: boolean;
     page?: number;
     location?: number;
-    position: number; // e.g. 1 of 10
+
+    position: number; // e.g. 0, 1, 9
+    totalFlashcards: number; // e.g. 10
 }

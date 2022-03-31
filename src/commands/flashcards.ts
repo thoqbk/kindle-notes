@@ -1,15 +1,12 @@
 import * as vscode from "vscode";
-import * as FileService from "../services/file-service";
-import * as BookService from "../services/book-service";
 import * as FlashcardService from "../services/flashcard-service";
+import * as Files from "../utils/files";
 import * as path from "path";
-import { Flashcard, Note } from "../types/services";
-import * as Transformers from "../utils/transformers";
+import { FlashcardDto } from "../types/services";
 import logger from "../logger";
-import _ = require("lodash");
 
 let currentFlashcardIdx = -1;
-let currentFlashcards: Flashcard[] = [];
+let currentFlashcards: FlashcardDto[] = [];
 let currentPanel: vscode.WebviewPanel | null = null;
 
 const viewType = "catCoding";
@@ -33,8 +30,8 @@ export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: 
 };
 
 const getHtmlForWebView = async (webview: vscode.Webview, context: vscode.ExtensionContext): Promise<string> => {
-    const cssFileNames = await FileService.getFileNames(path.join("out", "web", "static", "css"), ".css");
-    const jsFileNames = await FileService.getFileNames(path.join("out", "web", "static", "js"), ".js");
+    const cssFileNames = await Files.getFileNames(path.join("out", "web", "static", "css"), ".css");
+    const jsFileNames = await Files.getFileNames(path.join("out", "web", "static", "js"), ".js");
     if (!cssFileNames.length || !jsFileNames.length) {
         return "content not found";
     }
@@ -97,7 +94,7 @@ const initFlashcard = async () => {
         nextFlashcard();
         return;
     }
-    await refreshCards();
+    currentFlashcards = await FlashcardService.refreshCards(currentFlashcards);
     sendCurrentFlashcard(currentPanel, "initFlashcard");
 };
 
@@ -123,29 +120,4 @@ const sendCurrentFlashcard = (panel: vscode.WebviewPanel, type: string) => {
             type: "completed",
         });
     }
-};
-
-const refreshCards = async () => {
-    if (!currentFlashcards.length) {
-        return;
-    }
-    const bookId = currentFlashcards[0].bookId;
-    const book = await BookService.getBook(bookId);
-    if (!book) {
-        logger.info(`Cannot refresh card, book not found ${bookId}`);
-        return;
-    }
-    const notes: {
-        [key: string]: Note
-    } = _.fromPairs(book.notes.map(n => ([n.hash, n])));
-    const newFlashcards = [];
-    for (const flashcard of currentFlashcards) {
-        const note = notes[flashcard.hash];
-        if (!note) {
-            newFlashcards.push(flashcard);
-        } else {
-            newFlashcards.push(Transformers.noteToFlashcard(book, note, flashcard.position));
-        }
-    }
-    currentFlashcards = newFlashcards;
 };
