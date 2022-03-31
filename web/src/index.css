@@ -1,0 +1,60 @@
+/*
+ * Globals
+ */
+
+/* Links */
+a,
+a:focus,
+a:hover {
+  color: #fff;
+}
+
+/* Custom default button */
+.btn-default,
+.btn-default:hover,
+.btn-default:focus {
+  color: #333;
+  text-shadow: none; /* Prevent inheritence from `body` */
+  background-color: #fff;
+  border: 1px solid #fff;
+}
+
+/*
+ * Base structure
+ */
+
+html,
+body {
+  height: 100%;
+  text-align: center;
+  color: var(--vscode-editor-foreground);
+  background-color: var(--vscode-editor-background);
+}
+
+/* Extra markup and styles for table-esque vertical and horizontal centering */
+#root, .site-wrapper {
+  display: table;
+  width: 100%;
+  height: 100%;
+}
+.site-wrapper-inner {
+  display: table-cell;
+  vertical-align: middle;
+}
+.cover-container {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Padding for spacing */
+.inner {
+  padding: 30px;
+}
+
+/*
+ * Cover
+ */
+
+.cover {
+  padding: 0 20px;
+}
