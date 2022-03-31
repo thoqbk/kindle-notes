@@ -5,6 +5,7 @@ import config from "../config";
 import logger from "../logger";
 import { Book, Flashcard } from "../types/services";
 import * as Transformers from "../utils/transformers";
+import * as Files from "../utils/files";
 
 const fm = require("front-matter");
 
@@ -30,7 +31,7 @@ export const saveBooks = async (books: Book[]): Promise<void> => {
     const fileNames = _.fromPairs(markdowns.map(md => [md.bookId, md.fileName]));
     const existingBooks = _.fromPairs(markdowns.map(md => [md.bookId, Transformers.markdownToBook(md.content)]));
     for (const book of books) {
-        const filePath = path.join(config.getFlashcardsHomePath(), fileNames[book.id] || toMarkdownFileName(book));
+        const filePath = path.join(config.getFlashcardsHomePath(), fileNames[book.id] || Files.determineFileName(book.name));
         const existingBook = existingBooks[book.id];
         if (existingBook) {
             copyUserData(existingBook, book);
@@ -75,12 +76,4 @@ const allMarkdowns = async (): Promise<Markdown[]> => {
             fc.backside = fromFlashcards[fc.hash].backside;
         }
     }
-};
-
-const toMarkdownFileName = (book: Book) => {
-    return book.name
-        .replace(/[^a-zA-z0-9\s]/g, "")
-        .replace(/\s+/g, "-")
-        .toLowerCase()
-        + ".md";
 };
