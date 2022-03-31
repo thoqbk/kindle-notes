@@ -41,6 +41,24 @@ export const saveBooks = async (books: Book[]): Promise<void> => {
     logger.info("Books saved");
 };
 
+/**
+ * Delete markdown file for this book
+ * @param bookId
+ * @returns true if found the book and delete the markdown file successfully
+ */
+export const deleteBook = async (bookId: string): Promise<boolean> => {
+    logger.info(`Deleting book ${bookId}`);
+    const markdowns = await allMarkdowns();
+    const markdown = markdowns.find(md => md.bookId === bookId);
+    if (!markdown) {
+        return false;
+    }
+    logger.info(`Deleting file ${markdown.fileName}`);
+    await fs.unlink(path.join(config.getFlashcardsHomePath(), markdown.fileName));
+    logger.info(`File deleted`);
+    return true;
+};
+
 const allMarkdowns = async (): Promise<Markdown[]> => {
     const retVal: Markdown[] = [];
     logger.info("Getting all markdowns file");

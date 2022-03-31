@@ -9,3 +9,16 @@ export const syncBooks = async () => {
     await BookService.saveBooks(books);
     logger.info("Sync books successfully");
 };
+
+/**
+ * The way we generate file name for the markdown can be changed
+ * (i.e. change in Files.determineFileName)
+ * If so, we may want to run this function to change file names to the new values
+ */
+export const resetToDefaultFileNames = async () => {
+    const books = await BookService.allBooks();
+    for (const book of books) {
+        await BookService.deleteBook(book.id);
+        await BookService.saveBooks([book]);
+    }
+};
