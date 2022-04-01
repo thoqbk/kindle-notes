@@ -33,6 +33,7 @@ export const syncBooks = async () => {
         if (!password) {
             return;
         }
+        logger.info("Try logging in to Kindle using provided email and password...");
         if (await KindleService.login(kindleEmail, password)) {
             logger.info(`Login successfully with kindleEmail ${kindleEmail} and pwd. Saving credentials`);
             await vscode.workspace.getConfiguration(constants.kindleNotesConfigKey)

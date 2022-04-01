@@ -7,6 +7,10 @@
 	"engines": {
 		"vscode": "^1.65.0"
 	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/thoqbk/kindle-notes.git"
+	},
 	"categories": [
 		"Other"
 	],
@@ -61,11 +65,13 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
+		"compile": "tsc -p ./ && npm run build-web",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"build-web": "cd web && npm run build && cd ..",
+		"package": "vsce package"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.0",
@@ -86,7 +92,6 @@
 		"typescript": "^4.5.5"
 	},
 	"dependencies": {
-		"dotenv": "^16.0.0",
 		"front-matter": "^4.0.2",
 		"js-yaml": "^4.1.0",
 		"keychain": "^1.3.0",
