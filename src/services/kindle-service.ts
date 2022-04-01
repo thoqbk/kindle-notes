@@ -20,14 +20,39 @@ const bookNameSelector = "a h2";
 const authorSelector = "a p";
 const bookPhotoSelector = "a div.a-row img";
 
+const spinnerSelector = "#kp-notebook-library-spinner";
+
+/**
+ * 
+ * @returns true if login successfully
+ */
+export const login = async (kindleEmail: string, password: string): Promise<boolean> => {
+    if (!kindleEmail || !password) {
+        return false;
+    }
+    const browser = await launchBrowser();
+    try {
+        return await doLogin(browser, kindleEmail, password);
+    } finally {
+        await browser.close();
+    }
+};
+
 export const fetchBooks = async (): Promise<Book[]> => {
     const browser = await launchBrowser();
-    const notesPage = await ensureNotesPage(browser);
+    try {
+        return await doFetchBooks(browser);
+    } finally {
+        await browser.close();
+    }
+};
 
+const doFetchBooks = async (browser: puppeteer.Browser): Promise<Book[]> => {
+    const notesPage = await ensureNotesPage(browser);
     // getting books
     const books: Book[] = await notesPage.$$eval(
         booksSelector,
-        (elements: Element[], authorSelector: any, bookNameSelector: any, bookPhotoSelector: any) => 
+        (elements: Element[], authorSelector: any, bookNameSelector: any, bookPhotoSelector: any) =>
             elements.map(element => {
                 const authorText = element.querySelector(authorSelector)?.textContent || "";
                 const byText = "By: ";
@@ -39,7 +64,7 @@ export const fetchBooks = async (): Promise<Book[]> => {
                     photo: element.querySelector(bookPhotoSelector)?.getAttribute("src") || "",
                     flashcards: [],
                 };
-        }),
+            }),
         authorSelector,
         bookNameSelector,
         bookPhotoSelector
@@ -77,32 +102,38 @@ const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<N
     return retVal;
 };
 
+const doLogin = async (browser: puppeteer.Browser, kindleEmail: string, password: string): Promise<boolean> => {
+    const [page] = await browser.pages();
+    await page.goto(notesPageUrl);
+    await page.waitForNetworkIdle();
+    if (!(await isLoginPage(page))) {
+        return true;
+    }
+    if (await foundElement(page, emailSelector)) {
+        await page.focus(emailSelector);
+        await page.keyboard.type(kindleEmail);
+    }
+    await page.focus(passwordSelector);
+    await page.keyboard.type(password);
+    await page.keyboard.press("Enter");
+    await page.waitForNavigation();
+    return !(await isLoginPage(page));
+};
+
 const ensureNotesPage = async (browser: puppeteer.Browser): Promise<Page> => {
     const [retVal] = await browser.pages();
-    if (await foundElement(retVal, notesContainerSelector)) {
+    if (await isNotesPage(retVal)) {
         return retVal;
     }
-    // login
-    await retVal.goto(notesPageUrl);
-    await retVal.waitForFunction((emailSelector: string, passwordSelector: string, notesContainerSelector: string) => {
-        const loginPage = document.querySelector(emailSelector) || document.querySelector(passwordSelector);
-        const notesPage = document.querySelector(notesContainerSelector);
-        return loginPage || notesPage;
-    }, {}, emailSelector, passwordSelector, notesContainerSelector);
-    if (await isLoginPage(retVal)) {
-        if (await foundElement(retVal, emailSelector)) {
-            await retVal.focus(emailSelector);
-            await retVal.keyboard.type(config.user.email);
+    for (let retries = 1; retries < 3; retries++) {
+        logger.info(`Loading notesPage. Retries = ${retries}`);
+        await retVal.goto(notesPageUrl);
+        await retVal.waitForNetworkIdle();
+        if (await isNotesPage(retVal)) {
+            return retVal;
         }
-        await retVal.focus(passwordSelector);
-        await retVal.keyboard.type(config.user.password);
-
-        await retVal.keyboard.press("Enter");
     }
-
-    // getting notes
-    await retVal.waitForSelector(notesContainerSelector, { visible: true });
-    return retVal;
+    throw new Error("Cannot load the notesPage");
 };
 
 const launchBrowser = async (): Promise<puppeteer.Browser> => {
@@ -112,11 +143,16 @@ const launchBrowser = async (): Promise<puppeteer.Browser> => {
     });
 };
 
-const isLoginPage = async (page: Page | null): Promise<boolean> => {
+const isLoginPage = async (page: Page): Promise<boolean> => {
     return await foundElement(page, emailSelector) || await foundElement(page, passwordSelector);
 };
 
-const foundElement = async (page: Page | null, selector: string): Promise<boolean> => {
+const isNotesPage = async (page: Page): Promise<boolean> => {
+    return await foundElement(page, notesContainerSelector)
+        && !(await page.$$eval(spinnerSelector, Pages.isVisiblePageFn));
+};
+
+const foundElement = async (page: Page | undefined, selector: string): Promise<boolean> => {
     const retVal = page && await page.$(selector);
     logger.info(`Finding element "${selector}" in page. Found: ${!!retVal}`);
     return !!retVal;

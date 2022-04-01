@@ -14,3 +14,7 @@ export const extractRawNotePageFn = (elements: Element[], noteSelector: unknown,
         };
     }).filter((note): note is Note => note !== null);
 };
+
+export const isVisiblePageFn = (elements: Element[]): boolean => {
+    return !!elements.length && window.getComputedStyle(elements[0]).display !== 'none';
+};
