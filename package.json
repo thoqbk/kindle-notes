@@ -1,9 +1,11 @@
 {
 	"name": "kindle-notes",
-	"displayName": "KindleNotes",
+	"displayName": "Kindle Notes",
 	"description": "",
 	"version": "0.0.1",
 	"publisher": "thoqbk",
+	"icon": "icon.png",
+	"license": "Unlicensed",
 	"engines": {
 		"vscode": "^1.65.0"
 	},
