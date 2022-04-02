@@ -16,7 +16,7 @@ type OpenKindlePayload = {
     page?: number;
 };
 
-const viewType = "catCoding";
+const viewType = "kindleNotes";
 
 export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: string) => {
     const column = vscode.window.activeTextEditor?.viewColumn || vscode.ViewColumn.One;
@@ -29,7 +29,7 @@ export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: 
         enableScripts: true,
         localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "out", "web")]
     };
-    currentPanel = vscode.window.createWebviewPanel(viewType, "Cat Coding", column, webviewOption);
+    currentPanel = vscode.window.createWebviewPanel(viewType, "Kindle Notes", column, webviewOption);
     currentPanel.webview.html = await getHtmlForWebView(currentPanel.webview, context);
     currentPanel.webview.onDidReceiveMessage(onDidReceiveMessage);
     currentPanel.onDidDispose(onDidDispose, null, context.subscriptions);

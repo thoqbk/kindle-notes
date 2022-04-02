@@ -9,6 +9,11 @@
 		"markdown",
 		"kindle"
 	],
+	"author": {
+		"email": "thoqbk@gmail.com",
+		"name": "Tho Luong",
+		"url": "https://github.com/thoqbk"
+	},
 	"icon": "icon.png",
 	"license": "Unlicensed",
 	"engines": {
