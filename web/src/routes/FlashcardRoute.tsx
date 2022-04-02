@@ -7,7 +7,7 @@ import "./FlashcardRoute.css";
 
 const defaultFlashcard: FlashcardDto = {
   hash: "abcz=",
-  bookId: "z123",
+  bookId: "B07D23CFGR",
   bookName: "System Design Interview – An insider's guide",
   content: "CAP theorem states it is impossible for a distributed system to simultaneously provide more than two of these three guarantees: consistency, availability, and partition tolerance.",
   backside: `Notes:
@@ -69,9 +69,20 @@ const FlashcardRoute = () => {
     postMessage({ type: "submitResult", payload: { level } });
   };
 
+  const handleOpenKindleClicked = () => {
+    postMessage({
+      type: "openKindle",
+      payload: {
+        bookId: flashcard.bookId,
+        location: flashcard.location,
+        page: flashcard.page,
+      }
+    });
+  };
+
   const renderHeader = () => {
     return <div className="flashcard-header">
-      {!frontside ? <span className="float-start back-link" onClick={() => setFrontside(true)}>to frontside</span> : null}
+      {!frontside ? <span className="float-start flashcard-link" onClick={() => setFrontside(true)}>to frontside</span> : null}
       <span className="float-end flashcard-progress">{flashcard.position + 1} of {totalFlashcards}</span>
     </div>
   };
@@ -81,6 +92,8 @@ const FlashcardRoute = () => {
       {flashcard.bookName}
       {flashcard.location && ` (location: ${flashcard.location})`}
       {flashcard.page && ` (page: ${flashcard.page})`}
+      {" "}
+      <span className="flashcard-link" onClick={handleOpenKindleClicked}>open Kindle</span>
     </p>
   );
 

@@ -4,10 +4,17 @@ import * as Files from "../utils/files";
 import * as path from "path";
 import { FlashcardDto } from "../types/services";
 import logger from "../logger";
+import * as open from "open";
 
 let currentFlashcardIdx = -1;
 let currentFlashcards: FlashcardDto[] = [];
 let currentPanel: vscode.WebviewPanel | null = null;
+
+type OpenKindlePayload = {
+    bookId: string;
+    location?: number;
+    page?: number;
+};
 
 const viewType = "catCoding";
 
@@ -73,6 +80,12 @@ const onDidReceiveMessage = async (message: any) => {
             currentPanel?.dispose();
             break;
         }
+        case "openKindle": {
+            const url = buildUrl(message.payload);
+            logger.info(`Opening Kindle using url ${url}`);
+            await open(url);
+            break;
+        };
         default: {
             logger.info(`Receive unknown message type from webview: ${message.type}`);
         }
@@ -119,4 +132,14 @@ const sendCurrentFlashcard = (panel: vscode.WebviewPanel, type: string) => {
             type: "completed",
         });
     }
+};
+
+const buildUrl = (request: OpenKindlePayload): string => {
+    let retVal = `kindle://book?action=open&asin=${request.bookId}`;
+    if (request.location) {
+        retVal += `&location=${request.location}`;
+    } else if (request.page) {
+        retVal += `&page=${request.page}`;
+    }
+    return retVal;
 };
