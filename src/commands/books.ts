@@ -12,6 +12,21 @@ const getPassword = util.promisify(keychain.getPassword).bind(keychain);
 const setPassword = util.promisify(keychain.setPassword).bind(keychain);
 
 export const syncBooks = async () => {
+    vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "Syncing books from Kindle",
+        cancellable: false,
+    }, async (progress, token) => {
+        try {
+            await doSyncBooks();
+        } catch (e) {
+            logger.error("Sync failed", e);
+            vscode.window.showWarningMessage("Sync failed. Please try again");
+        }
+    });
+};
+
+const doSyncBooks = async () => {
     const credentials = await getKindleEmailAndPassword();
     const requestForCredentials = !credentials || !(await KindleService.login(credentials[0], credentials[1]));
     if (requestForCredentials) {
@@ -59,7 +74,8 @@ export const syncBooks = async () => {
     logger.info("Syncing books from Kindle");
     const books = await KindleService.fetchBooks();
     await BookService.saveBooks(books);
-    logger.info("Sync books successfully");
+    logger.info(`Sync ${books.length} book(s) successfully`);
+    vscode.window.showInformationMessage(`${books.length} book(s) have been synced`);
 };
 
 /**
