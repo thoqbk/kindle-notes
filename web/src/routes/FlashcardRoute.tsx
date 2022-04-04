@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import { FlashcardDto, FlashcardPayload } from "../types";
 import { postMessage } from "../utils/vsCode";
 import "./FlashcardRoute.css";
@@ -9,7 +10,7 @@ const defaultFlashcard: FlashcardDto = {
   hash: "abcz=",
   bookId: "B07D23CFGR",
   bookName: "System Design Interview – An insider's guide",
-  content: "CAP theorem states it is impossible for a distributed system to simultaneously provide more than two of these three guarantees: consistency, availability, and partition tolerance.",
+  content: "`CAP theorem` states it is impossible for a distributed system to simultaneously provide more than two of these three guarantees: consistency, availability, and partition tolerance.",
   backside: `Notes:
 - Partition Tolerance: \`partition\` means commnication break between 2 nodes
 - Consistency: clients see the same data no matter what node they connect to
@@ -87,6 +88,15 @@ const FlashcardRoute = () => {
     </div>
   };
 
+  const renderBody = () => {
+    const content = frontside ? flashcard.content : flashcard.backside;
+    return <p className="lead" id="flashcard-body">
+      <ReactMarkdown>
+        {content || ""}
+      </ReactMarkdown>
+    </p>
+  };
+
   const renderBookName = () => (
     <p id="flashcard-book-name">
       {flashcard.bookName}
@@ -113,9 +123,7 @@ const FlashcardRoute = () => {
     <div className="container study-page">
       <div className="inner cover">
         {renderHeader()}
-        <p className="lead" id="flashcard-body">
-          {frontside ? flashcard.content : flashcard.backside}
-        </p>
+        {renderBody()}
         <hr />
         {renderBookName()}
         <div className="lead btn-group">
