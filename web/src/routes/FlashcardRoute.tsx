@@ -2,6 +2,7 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { FlashcardDto, FlashcardPayload } from "../types";
 import { postMessage } from "../utils/vsCode";
 import "./FlashcardRoute.css";
@@ -14,7 +15,10 @@ const defaultFlashcard: FlashcardDto = {
   backside: `Notes:
 - Partition Tolerance: \`partition\` means commnication break between 2 nodes
 - Consistency: clients see the same data no matter what node they connect to
-- CA: cannot exist in real world because network failure is unavoidable --> always need \`P\``,
+- CA: cannot exist in real world because network failure is unavoidable --> always need \`P\`
+
+Read more here: https://www.educative.io/blog/what-is-cap-theorem
+`,
   location: 1373,
   position: 3,
   totalFlashcards: 10,
@@ -91,7 +95,7 @@ const FlashcardRoute = () => {
   const renderBody = () => {
     const content = frontside ? flashcard.content : flashcard.backside;
     return <p className="lead" id="flashcard-body">
-      <ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>
         {content || ""}
       </ReactMarkdown>
     </p>
