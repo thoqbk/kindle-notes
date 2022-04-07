@@ -93,7 +93,9 @@ const copyUserData = (from: Book, to: Book) => {
     for (const fc of to.flashcards) {
         if (fromFlashcards[fc.hash]) {
             fc.excluded = fromFlashcards[fc.hash].excluded;
-            fc.backside = fromFlashcards[fc.hash].backside;
+            fc.backside = fromFlashcards[fc.hash].backside?.trim();
+            // Keep the old content if it is modified but not empty
+            fc.content = fromFlashcards[fc.hash].content.trim() || fc.content;
         }
     }
 };
