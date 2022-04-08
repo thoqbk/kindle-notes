@@ -11,7 +11,6 @@ const notesPageUrl = "https://read.amazon.com/notebook";
 const emailSelector = "input[type='email']";
 const passwordSelector = "input[type='password']";
 const notesContainerSelector = "div#kp-notebook-annotations-pane";
-const bookMetadataSelector = "div#kp-notebook-annotations-pane span.kp-notebook-metadata";
 const noteBlocksSelector = "#kp-notebook-annotations .kp-notebook-row-separator";
 const noteSelector = "#highlight";
 const highlightHeaderSelector = "#annotationHighlightHeader";
@@ -90,7 +89,7 @@ const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<N
         return [];
     }
     await waitForVisibleAndClick(notesPage, bookLinkSelector);
-    await notesPage.waitForSelector(bookMetadataSelector, { visible: true });
+    await notesPage.waitForFunction(Pages.receivedAllNotesPageFn);
 
     // getting notes
     const retVal = await notesPage.$$eval(
