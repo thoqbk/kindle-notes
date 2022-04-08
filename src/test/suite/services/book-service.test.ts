@@ -86,9 +86,7 @@ suite("BookingService Test Suite", () => {
 
     test("saveBooks should not override the flashcard if modified", async () => {
         // arrange
-        mockReadFiles({
-            "book-4.md": markdown4V1
-        });
+        mockReadFiles({ "book-4.md": markdown4V1 });
         let savedContent = "";
         (fs as any).writeFile = (filePath: string, content: string) => savedContent = content;
 
@@ -101,9 +99,7 @@ suite("BookingService Test Suite", () => {
 
     test("saveBooks should override the flashcard if the old content is empty", async () => {
         // arrange
-        mockReadFiles({
-            "book-4.md": markdown4V1Empty
-        });
+        mockReadFiles({ "book-4.md": markdown4V1Empty });
         let savedContent = "";
         (fs as any).writeFile = (filePath: string, content: string) => savedContent = content;
 
@@ -112,6 +108,18 @@ suite("BookingService Test Suite", () => {
 
         // assert
         expect(savedContent).to.contains("New Line 1");
+    });
+
+    test("getFlashcardLocation returns correct location", async () => {
+        // arrange
+        mockReadFiles({ "book-4.md": markdown4V1 });
+
+        // act
+        const location = await BookService.getFlashcardLocation("vvv123", "eee1232");
+
+        // assert
+        expect(location?.fullFilePath).contains("book-4.md");
+        expect(location?.line).to.equal(6);
     });
 });
 

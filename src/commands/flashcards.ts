@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as FlashcardService from "../services/flashcard-service";
+import * as BookService from "../services/book-service";
 import * as Files from "../utils/files";
 import * as path from "path";
 import { FlashcardDto } from "../types/services";
@@ -14,6 +15,11 @@ type OpenKindlePayload = {
     bookId: string;
     location?: number;
     page?: number;
+};
+
+type OpenFlashcardMarkdownPayload = {
+    bookId: string;
+    flashcardHash: string;
 };
 
 const viewType = "kindleNotes";
@@ -86,6 +92,10 @@ const onDidReceiveMessage = async (message: any) => {
             await open(url);
             break;
         };
+        case "openFlashcardMarkdown": {
+            openFlashcardMarkdown(message.payload);
+            break;
+        };
         default: {
             logger.info(`Receive unknown message type from webview: ${message.type}`);
         }
@@ -142,4 +152,25 @@ const buildUrl = (request: OpenKindlePayload): string => {
         retVal += `&page=${request.page}`;
     }
     return retVal;
+};
+
+const openFlashcardMarkdown = async (payload: OpenFlashcardMarkdownPayload) => {
+    const location = await BookService.getFlashcardLocation(payload.bookId, payload.flashcardHash);
+    if (!location) {
+        logger.error(`Flashcard not found. BookId ${payload.bookId}, hash ${payload.flashcardHash}`);
+        return;
+    }
+    logger.info(`Opening markdownfile ${location.fullFilePath}`);
+    await vscode.commands.executeCommand("vscode.open", vscode.Uri.file(location.fullFilePath));
+    await vscode.commands.executeCommand("revealLine", {
+        lineNumber: location.line + 1,
+        at: "center",
+    });
+    const editor = vscode.window.activeTextEditor;
+    const range = editor?.document.lineAt(location.line).range;
+    if (editor && range) {
+        editor.selection = new vscode.Selection(range.start, range.end);
+    } else {
+        logger.info(`Cannot open markdown file ${location.fullFilePath}, line ${location.line}`);
+    }
 };

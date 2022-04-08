@@ -5,14 +5,17 @@ import config from "../config";
 import logger from "../logger";
 
 export const checkAndCreate = (dirPath: string) => {
-    if (!dirExists(dirPath)) {
+    if (!exists(dirPath)) {
         logger.info(`Creating dir ${dirPath}`);
         fs.mkdirSync(dirPath);
     }
 };
 
-export const dirExists = (dirPath: string) => {
-    return fs.existsSync(dirPath);
+/**
+ * Check if file or dir exists
+ */
+export const exists = (filePath: string) => {
+    return fs.existsSync(filePath);
 };
 
 /**

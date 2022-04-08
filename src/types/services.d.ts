@@ -1,7 +1,7 @@
 /**
- * Raw note evaluated inside read.amazon.com
- * The object will later be transformed to Note
- */
+* Raw note evaluated inside read.amazon.com
+* The object will later be transformed to Note
+*/
 export interface Note {
     rawId: string;
     highlightHeader: string;
@@ -17,6 +17,11 @@ export interface Flashcard {
     location?: number;
 }
 
+export interface FlashcardLocation {
+    fullFilePath: string;
+    line: number; // (1-based value) the first line of the flashcard in the book
+}
+
 export interface Book {
     id: string;
     name: string;
@@ -26,19 +31,19 @@ export interface Book {
 }
 
 /**
- * Sent to UI
- */
+* Sent to UI
+*/
 export interface FlashcardDto {
     bookId: string;
     bookName: string;
-
+    
     hash: string;
     content: string;
     backside?: string;
     excluded?: boolean;
     page?: number;
     location?: number;
-
+    
     position: number; // e.g. 0, 1, 9
     totalFlashcards: number; // e.g. 10
 }

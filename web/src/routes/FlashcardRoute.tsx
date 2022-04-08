@@ -85,6 +85,16 @@ const FlashcardRoute = () => {
     });
   };
 
+  const handleOpenFlashcardMarkdownClicked = () => {
+    postMessage({
+      type: "openFlashcardMarkdown",
+      payload: {
+        bookId: flashcard.bookId,
+        flashcardHash: flashcard.hash,
+      }
+    });
+  };
+
   const renderHeader = () => {
     return <div className="flashcard-header">
       {!frontside ? <span className="float-start flashcard-link" onClick={() => setFrontside(true)}>to frontside</span> : null}
@@ -108,6 +118,8 @@ const FlashcardRoute = () => {
       {flashcard.page && ` (page: ${flashcard.page})`}
       {" "}
       <span className="flashcard-link" onClick={handleOpenKindleClicked}>open Kindle</span>
+      {" "}/{" "}
+      <span className="flashcard-link" onClick={handleOpenFlashcardMarkdownClicked}>open Markdown</span>
     </p>
   );
 
