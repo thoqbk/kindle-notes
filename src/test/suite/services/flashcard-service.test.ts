@@ -111,8 +111,15 @@ suite("FlashcardService Test Suite", () => {
             bookId: "123",
             easinessFactor: 3,
             repetitionNumber: 1.2,
-            interval: 1,
+            interval: 2,
             lastReview: 1649499442925
+        }, {
+            hash: "fc1",
+            bookId: "123",
+            easinessFactor: 2,
+            repetitionNumber: 4.2,
+            interval: 1,
+            lastReview: 1649413042925
         }];
 
         const result = await FlashcardService.newStudySession({
