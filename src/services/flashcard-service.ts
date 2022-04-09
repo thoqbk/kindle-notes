@@ -7,17 +7,16 @@ import sm2 from "../utils/sm2";
 import { Book, Flashcard, FlashcardDto, NewStudySessionRequest, SaveResultRequest, StudySession, FlashcardSm2 } from "../types/services";
 import * as BookService from "./book-service";
 
-const numberOfFlashcards = 10;
 const msADay = 24 * 60 * 60 * 1000;
 
 export const newStudySession = async (request: NewStudySessionRequest): Promise<StudySession> => {
-    const book = await BookService.getBook(request.bookId);
+    let book = request.bookId ? await BookService.getBook(request.bookId) : await pickBook();
     if (!book) {
         throw new Error(`Book not found ${request.bookId}`);
     }
     const retVal: StudySession = {
         id: uuid(),
-        bookId: request.bookId,
+        bookId: book.id,
         scheduled: pickFlashcards(book, request.totalFlashcards).map(fc => fc.hash),
         needToReview: [],
         totalFlashcards: request.totalFlashcards,
@@ -83,22 +82,6 @@ export const saveResult = async (request: SaveResultRequest): Promise<void> => {
     await db.save();
 };
 
-export const generate = async (bookId?: string): Promise<FlashcardDto[]> => {
-    const books = await BookService.allBooks();
-    const book = bookId ? books.find(b => b.id === bookId) : pickBook(books);
-    if (!book) {
-        return [];
-    }
-    const flashcards = pickFlashcards(book, numberOfFlashcards);
-    return flashcards.map((fc, position) => ({
-        bookId: book.id,
-        bookName: book.name,
-        ...fc,
-        position,
-        totalFlashcards: flashcards.length,
-    }));
-};
-
 export const refreshCards = async (refreshingFlashcards: FlashcardDto[]): Promise<FlashcardDto[]> => {
     if (!refreshingFlashcards.length) {
         return [];
@@ -127,31 +110,39 @@ export const refreshCards = async (refreshingFlashcards: FlashcardDto[]): Promis
     return retVal;
 };
 
-const pickBook = (books: Book[]): Book | null => {
-    const totalNotes = _.sumBy(books, book => book.flashcards.filter(filterValidFlashcard).length);
-    if (totalNotes === 0) {
-        return null;
+const pickBook = async (): Promise<Book | undefined> => {
+    const books = await BookService.allBooks();
+    const sm2 = _.fromPairs(db.sm2.map(v => [flashcardKey(v.bookId, v.hash), v]));
+    const validFlashcards: {
+        [key: string]: number;
+    } = {};
+    let totalFlashcards = 0;
+    for (const book of books) {
+        validFlashcards[book.id] = book.flashcards.filter(fc => {
+            const key = flashcardKey(book.id, fc.hash);
+            return !fc.excluded && validAge(sm2[key]);
+        }).length;
+        totalFlashcards += validFlashcards[book.id];
     }
-    const rand = _.random(1, totalNotes);
+    if (totalFlashcards === 0) {
+        return undefined;
+    }
+    const rand = _.random(1, totalFlashcards);
     let prev = 0;
     for (const book of books) {
         const start = prev + 1;
-        const end = prev + book.flashcards.filter(filterValidFlashcard).length;
+        const end = prev + validFlashcards[book.id];
         if (rand >= start && rand <= end) {
             return book;
         }
         prev = end;
     }
-    return null;
+    return undefined;
 };
 
 const pickFlashcards = (book: Book, totalFlashcards: number): Flashcard[] => {
     const sm2 = _.fromPairs(db.sm2.filter(v => v.bookId === book.id).map(v => [v.hash, v]));
-    const validFlashcards = book.flashcards.filter(fc => {
-        const validAge = !sm2[fc.hash]
-        || (now() - sm2[fc.hash].lastReview >= sm2[fc.hash].interval * msADay);
-        return !fc.excluded && validAge;
-    });
+    const validFlashcards = book.flashcards.filter(fc => !fc.excluded && validAge(sm2[fc.hash]));
     if (validFlashcards.length <= totalFlashcards) {
         return validFlashcards;
     }
@@ -183,8 +174,6 @@ const getFlashcardDto = async (session: StudySession, hash: string): Promise<Fla
     };
 };
 
-const filterValidFlashcard = (flashcard: Flashcard): boolean => !flashcard.excluded;
-
 const updateSm2 = async (session: StudySession, hash: string, grade: number) => {
     const defaultSm2: FlashcardSm2 = {
         bookId: session.bookId,
@@ -208,3 +197,7 @@ const updateSm2 = async (session: StudySession, hash: string, grade: number) => 
         lastReview: now(),
     });
 };
+
+const flashcardKey = (bookId: string, hash: string) => `${bookId}++${hash}`;
+
+const validAge = (sm2: FlashcardSm2 | undefined) => !sm2 || (now() - sm2.lastReview >= sm2.interval * msADay);

@@ -81,7 +81,7 @@ suite("BookingService Test Suite", () => {
         await BookService.saveBooks([book3]);
 
         // assert
-        expect(savedFilePath).to.equal("hello-3.md");
+        expect(savedFilePath).to.contain("hello-3.md");
     });
 
     test("saveBooks should not override the flashcard if modified", async () => {

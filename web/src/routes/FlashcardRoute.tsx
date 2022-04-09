@@ -70,8 +70,8 @@ const FlashcardRoute = () => {
     setFrontside(true);
   }, [flashcard]);
 
-  const handleLevelClicked = (level: number) => {
-    postMessage({ type: "submitResult", payload: { level } });
+  const handleLevelClicked = (grade: number) => {
+    postMessage({ type: "submitResult", payload: { grade } });
   };
 
   const handleOpenKindleClicked = () => {

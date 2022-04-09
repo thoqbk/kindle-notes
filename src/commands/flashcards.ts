@@ -3,13 +3,15 @@ import * as FlashcardService from "../services/flashcard-service";
 import * as BookService from "../services/book-service";
 import * as Files from "../utils/files";
 import * as path from "path";
-import { FlashcardDto } from "../types/services";
+import { FlashcardDto, StudySession } from "../types/services";
 import logger from "../logger";
 import * as open from "open";
 
-let currentFlashcardIdx = -1;
-let currentFlashcards: FlashcardDto[] = [];
-let currentPanel: vscode.WebviewPanel | null = null;
+const defaultTotalFlashcards = 10;
+
+let currentSession: StudySession | undefined;
+let currentFlashcard: FlashcardDto | undefined;
+let currentPanel: vscode.WebviewPanel | undefined;
 
 type OpenKindlePayload = {
     bookId: string;
@@ -26,7 +28,7 @@ const viewType = "kindleNotes";
 
 export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: string) => {
     const column = vscode.window.activeTextEditor?.viewColumn || vscode.ViewColumn.One;
-    if (currentPanel !== null) {
+    if (currentPanel) {
         logger.info("There's already a Kindle Notes webview, make it active instead of creating a new one");
         currentPanel.reveal(column);
         return;
@@ -39,7 +41,11 @@ export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: 
     currentPanel.webview.html = await getHtmlForWebView(currentPanel.webview, context);
     currentPanel.webview.onDidReceiveMessage(onDidReceiveMessage);
     currentPanel.onDidDispose(onDidDispose, null, context.subscriptions);
-    currentFlashcards = await FlashcardService.generate(bookId);
+    currentFlashcard = undefined;
+    currentSession = await FlashcardService.newStudySession({
+        bookId,
+        totalFlashcards: defaultTotalFlashcards,
+    });
 };
 
 const getHtmlForWebView = async (webview: vscode.Webview, context: vscode.ExtensionContext): Promise<string> => {
@@ -78,8 +84,16 @@ const onDidReceiveMessage = async (message: any) => {
             break;
         }
         case "submitResult": {
-            logger.info(`Received result from webview. Level ${message.payload.level}`);
-            nextFlashcard();
+            logger.info(`Received result from webview. Grade ${message.payload.grade}`);
+            if (!currentSession || !currentFlashcard) {
+                throw new Error(`Cannot submitResult due to invalid session state`);
+            }
+            await FlashcardService.saveResult({
+                sessionId: currentSession.id,
+                flashcardHash: currentFlashcard.hash,
+                grade: message.payload.grade,
+            });
+            await nextFlashcard();
             break;
         }
         case "closeWebview": {
@@ -103,45 +117,44 @@ const onDidReceiveMessage = async (message: any) => {
 };
 
 const onDidDispose = () => {
-    currentFlashcardIdx = -1;
-    currentFlashcards = [];
-    currentPanel = null;
+    currentSession = undefined;
+    currentPanel = undefined;
     logger.info("Released resources because webview was disposed");
 };
 
 const initFlashcard = async () => {
-    if (currentPanel === null) {
+    if (!currentPanel || !currentSession) {
         return;
     }
-    if (currentFlashcardIdx === -1) {
-        nextFlashcard();
+    if (currentSession.shown === 0) {
+        await nextFlashcard();
         return;
     }
-    currentFlashcards = await FlashcardService.refreshCards(currentFlashcards);
-    sendCurrentFlashcard(currentPanel, "initFlashcard");
+    if (currentFlashcard) {
+        await FlashcardService.refreshCards([currentFlashcard]);
+        sendCurrentFlashcard(currentPanel, "initFlashcard");
+    }
 };
 
-const nextFlashcard = () => {
-    if (currentPanel === null) {
+const nextFlashcard = async () => {
+    if (!currentPanel || !currentSession) {
         return;
     }
-    currentFlashcardIdx++;
-    sendCurrentFlashcard(currentPanel, "nextFlashcard");
+    if (currentFlashcard && currentFlashcard.position === currentFlashcard.totalFlashcards - 1) {
+        currentPanel.webview.postMessage({ type: "completed" });
+    } else {
+        currentFlashcard = await FlashcardService.nextFlashcard(currentSession.id);
+        sendCurrentFlashcard(currentPanel, "nextFlashcard");
+    }
 };
 
 const sendCurrentFlashcard = (panel: vscode.WebviewPanel, type: string) => {
-    if (currentFlashcardIdx < currentFlashcards.length) {
-        panel.webview.postMessage({
-            type,
-            payload: {
-                flashcard: currentFlashcards[currentFlashcardIdx],
-            },
-        });
-    } else {
-        panel.webview.postMessage({
-            type: "completed",
-        });
-    }
+    panel.webview.postMessage({
+        type,
+        payload: {
+            flashcard: currentFlashcard,
+        },
+    });
 };
 
 const buildUrl = (request: OpenKindlePayload): string => {

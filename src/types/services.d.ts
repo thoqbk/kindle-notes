@@ -49,7 +49,7 @@ export interface FlashcardDto {
 }
 
 export interface NewStudySessionRequest {
-    bookId: string;
+    bookId?: string;
     totalFlashcards: number;
 }
 
