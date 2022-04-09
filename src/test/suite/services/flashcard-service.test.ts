@@ -1,5 +1,7 @@
 import * as assert from "assert";
 import { expect } from "chai";
+import db from "../../../db";
+import * as Times from "../../../utils/times";
 import * as Transformers from "../../../utils/transformers";
 import * as BookService from "../../../services/book-service";
 import * as FlashcardService from "../../../services/flashcard-service";
@@ -15,10 +17,23 @@ Hello 1
 %%
 backside line 1
 
+<!--
+hash: fc1
+-->
+
 ##
 Hello 2
+
+<!--
+hash: fc2
+-->
+
 ##
 Hello 3
+
+<!--
+hash: fc3
+-->
 `);
 
 const book2 = Transformers.markdownToBook(`---
@@ -86,5 +101,31 @@ suite("FlashcardService Test Suite", () => {
         const flashcards = await FlashcardService.generate();
         assert.strictEqual(flashcards.length, 1);
         assert.strictEqual(flashcards[0].content, "Hello 5");
+    });
+
+    test ("newStudySession should return scheduled flashcards with considering of sm2.interval", async () => {
+        (BookService as any).getBook = () => book1;
+        (Times as any).now = () => 1649499442925;
+        db.sm2 = [{
+            hash: "fc3",
+            bookId: "123",
+            easinessFactor: 3,
+            repetitionNumber: 1.2,
+            interval: 1,
+            lastReview: 1649499442925
+        }];
+
+        const result = await FlashcardService.newStudySession({
+            bookId: "123",
+            totalFlashcards: 3
+        });
+
+        expect(result.scheduled.length).eqls(2);
+        expect(result).contains({
+            bookId: "123",
+            totalFlashcards: 3,
+            showed: 0,
+            status: "on-going"
+        });
     });
 });

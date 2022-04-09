@@ -1,9 +1,35 @@
 import * as _ from "lodash";
+import { v4 as uuid } from "uuid";
 import logger from "../logger";
-import { Book, Flashcard, FlashcardDto } from "../types/services";
+import { now } from "../utils/times";
+import db from "../db";
+import { Book, Flashcard, FlashcardDto, NewStudySessionRequest, StudySession } from "../types/services";
 import * as BookService from "./book-service";
 
 const numberOfFlashcards = 10;
+const msADay = 24 * 60 * 60 * 1000;
+
+export const newStudySession = async (request: NewStudySessionRequest): Promise<StudySession> => {
+    const book = await BookService.getBook(request.bookId);
+    if (!book) {
+        throw new Error(`Book not found ${request.bookId}`);
+    }
+
+    const retVal: StudySession = {
+        id: uuid(),
+        bookId: request.bookId,
+        scheduled: pickFlashcards(book, request.totalFlashcards).map(fc => fc.hash),
+        needToReviews: [],
+        totalFlashcards: request.totalFlashcards,
+        showed: 0,
+        status: "on-going",
+        startedAt: now(),
+    };
+    db.sessions.push(retVal);
+    await db.save();
+
+    return retVal;
+};
 
 export const generate = async (bookId?: string): Promise<FlashcardDto[]> => {
     const books = await BookService.allBooks();
@@ -11,7 +37,7 @@ export const generate = async (bookId?: string): Promise<FlashcardDto[]> => {
     if (!book) {
         return [];
     }
-    const flashcards = pickFlashcards(book);
+    const flashcards = pickFlashcards(book, numberOfFlashcards);
     return flashcards.map((fc, position) => ({
         bookId: book.id,
         bookName: book.name,
@@ -67,16 +93,21 @@ const pickBook = (books: Book[]): Book | null => {
     return null;
 };
 
-const pickFlashcards = (book: Book): Flashcard[] => {
-    const validFlashcards = book.flashcards.filter(filterValidFlashcard);
-    if (validFlashcards.length <= numberOfFlashcards) {
+const pickFlashcards = (book: Book, totalFlashcards: number): Flashcard[] => {
+    const sm2 = _.fromPairs(db.sm2.filter(v => v.bookId === book.id).map(v => [v.hash, v]));
+    const validFlashcards = book.flashcards.filter(fc => {
+        const validAge = !sm2[fc.hash]
+            || (now() - sm2[fc.hash].lastReview >= sm2[fc.hash].interval * msADay);
+        return !fc.excluded && validAge;
+    });
+    if (validFlashcards.length <= totalFlashcards) {
         return validFlashcards;
     }
     const items = validFlashcards.map((n, idx) => ({
         idx,
         note: n
     }));
-    const randomItems = _.shuffle(items).slice(0, numberOfFlashcards);
+    const randomItems = _.shuffle(items).slice(0, totalFlashcards);
     return _.sortBy(randomItems, item => item.idx).map(item => item.note);
 };
 

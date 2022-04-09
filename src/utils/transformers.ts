@@ -89,7 +89,7 @@ export const markdownToBook = (markdown: string): Book => {
         throw new Error(`Invalid markdown content ${markdown}`);
     }
     return {
-        id: frontMatter.attributes.id,
+        id: `${frontMatter.attributes.id}`,
         name: frontMatter.attributes.name,
         author: frontMatter.attributes.author,
         photo: frontMatter.attributes.photo,

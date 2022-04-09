@@ -47,3 +47,54 @@ export interface FlashcardDto {
     position: number; // e.g. 0, 1, 9
     totalFlashcards: number; // e.g. 10
 }
+
+export interface NewStudySessionRequest {
+    bookId: string;
+    totalFlashcards: number;
+}
+
+export interface StudySession {
+    id: string;
+    bookId: string;
+
+    scheduled: string[]; // hash of scheduled flashcards
+    needToReviews: string[]; // hash of flashcards with incorrect answer
+
+    // Number of cards will be shown
+    // Greater than scheduled.length if not enough valid cards
+    totalFlashcards: number;
+    showed: number;
+
+    status: "completed" | "on-going" | "cancelled";
+
+    startedAt: number;
+    endedAt?: number;
+}
+
+export interface Sm2Request {
+    userGrade: number;
+    repetitionNumber: number;
+    easinessFactor: number;
+    interval: number;
+}
+
+export interface Sm2Response {
+    repetitionNumber: number;
+    easinessFactor: number;
+    interval: number;
+}
+
+export interface FlashcardSm2 {
+    bookId: string;
+    hash: string;
+    easinessFactor: number;
+    repetitionNumber: number;
+    interval: number; // days
+    lastReview: number; // ts
+}
+
+export interface Db {
+    sessions: StudySession[];
+    sm2: FlashcardSm2[];
+    save: () => Promise<void>
+}
