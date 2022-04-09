@@ -14,21 +14,52 @@ export const newStudySession = async (request: NewStudySessionRequest): Promise<
     if (!book) {
         throw new Error(`Book not found ${request.bookId}`);
     }
-
     const retVal: StudySession = {
         id: uuid(),
         bookId: request.bookId,
         scheduled: pickFlashcards(book, request.totalFlashcards).map(fc => fc.hash),
-        needToReviews: [],
+        needToReview: [],
         totalFlashcards: request.totalFlashcards,
-        showed: 0,
+        shown: 0,
         status: "on-going",
         startedAt: now(),
     };
     db.sessions.push(retVal);
     await db.save();
-
     return retVal;
+};
+
+export const nextFlashcard = async (sessionId: string): Promise<FlashcardDto> => {
+    const session = db.sessions.find(s => s.id === sessionId);
+    if (!session) {
+        throw new Error(`Session ${sessionId} not found`);
+    }
+    if (session.status !== "on-going") {
+        throw new Error(`nextFlashcard fails due to invalid session status: ${session.status}`);
+    }
+    if (session.shown >= session.totalFlashcards) {
+        throw new Error(`All flashcards have been shown`);
+    }
+    const remaining = session.totalFlashcards - session.shown;
+    const fromNeedToReviews = session.needToReview.length
+        && (
+            session.needToReview.length >= remaining
+            || session.shown >= session.scheduled.length
+        );
+    let hash: string | undefined = "";
+    if (fromNeedToReviews) {
+        hash = _.sample(session.needToReview);
+    } else if (session.shown < session.scheduled.length) {
+        hash = session.scheduled[session.shown];
+    } else {
+        hash = _.sample(session.scheduled);
+    }
+    if (!hash) {
+        throw new Error(`Cannot pick flashcard for session ${sessionId}`);
+    }
+    session.shown++;
+    await db.save();
+    return await getFlashcardDto(session, hash);
 };
 
 export const generate = async (bookId?: string): Promise<FlashcardDto[]> => {
@@ -97,7 +128,7 @@ const pickFlashcards = (book: Book, totalFlashcards: number): Flashcard[] => {
     const sm2 = _.fromPairs(db.sm2.filter(v => v.bookId === book.id).map(v => [v.hash, v]));
     const validFlashcards = book.flashcards.filter(fc => {
         const validAge = !sm2[fc.hash]
-            || (now() - sm2[fc.hash].lastReview >= sm2[fc.hash].interval * msADay);
+        || (now() - sm2[fc.hash].lastReview >= sm2[fc.hash].interval * msADay);
         return !fc.excluded && validAge;
     });
     if (validFlashcards.length <= totalFlashcards) {
@@ -109,6 +140,26 @@ const pickFlashcards = (book: Book, totalFlashcards: number): Flashcard[] => {
     }));
     const randomItems = _.shuffle(items).slice(0, totalFlashcards);
     return _.sortBy(randomItems, item => item.idx).map(item => item.note);
+};
+
+const getFlashcardDto = async (session: StudySession, hash: string): Promise<FlashcardDto> => {
+    const book = await BookService.getBook(session.bookId);
+    const flashcard = book?.flashcards.find(fc => fc.hash === hash);
+    if (!book || !flashcard) {
+        throw new Error(`Flashcard not found. BookId ${session.bookId}, hash ${hash}`);
+    }
+    return {
+        bookId: book.id,
+        bookName: book.name,
+        hash,
+        content: flashcard.content,
+        backside: flashcard.backside,
+        excluded: flashcard.excluded,
+        page: flashcard.page,
+        location: flashcard.location,
+        position: session.shown - 1,
+        totalFlashcards: session.totalFlashcards,
+    };
 };
 
 const filterValidFlashcard = (flashcard: Flashcard): boolean => !flashcard.excluded;

@@ -58,12 +58,12 @@ export interface StudySession {
     bookId: string;
 
     scheduled: string[]; // hash of scheduled flashcards
-    needToReviews: string[]; // hash of flashcards with incorrect answer
+    needToReview: string[]; // hash of flashcards with incorrect answer
 
     // Number of cards will be shown
     // Greater than scheduled.length if not enough valid cards
     totalFlashcards: number;
-    showed: number;
+    shown: number;
 
     status: "completed" | "on-going" | "cancelled";
 

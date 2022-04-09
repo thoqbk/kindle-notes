@@ -96,14 +96,15 @@ suite("FlashcardService Test Suite", () => {
         expect(invalid).to.be.equal(0);
     });
 
-    test ("generate should ignore excluded flashcard", async () => {
+    test("generate should ignore excluded flashcard", async () => {
         (BookService as any).allBooks = () => ([book3]);
         const flashcards = await FlashcardService.generate();
         assert.strictEqual(flashcards.length, 1);
         assert.strictEqual(flashcards[0].content, "Hello 5");
     });
 
-    test ("newStudySession should return scheduled flashcards with considering of sm2.interval", async () => {
+    test("newStudySession should return scheduled flashcards with considering of sm2.interval", async () => {
+        // arrange
         (BookService as any).getBook = () => book1;
         (Times as any).now = () => 1649499442925;
         db.sm2 = [{
@@ -122,17 +123,69 @@ suite("FlashcardService Test Suite", () => {
             lastReview: 1649413042925
         }];
 
+        // act
         const result = await FlashcardService.newStudySession({
             bookId: "123",
             totalFlashcards: 3
         });
 
+        // assert
         expect(result.scheduled.length).eqls(2);
         expect(result).contains({
             bookId: "123",
             totalFlashcards: 3,
-            showed: 0,
+            shown: 0,
             status: "on-going"
+        });
+    });
+
+    test("newFlashcard should pick flashcard from scheduled if needToReview is not full", async () => {
+        // arrange
+        (BookService as any).getBook = () => book1;
+        db.sessions = [{
+            id: "test-session",
+            bookId: "123",
+            scheduled: ["fc1", "fc2"],
+            needToReview: [],
+            totalFlashcards: 5,
+            shown: 1,
+            status: "on-going",
+            startedAt: 0,
+        }];
+
+        // act
+        const result = await FlashcardService.nextFlashcard("test-session");
+
+        // assert
+        expect(result).contains({
+            hash: "fc2",
+            position: 1,
+            totalFlashcards: 5
+        });
+    });
+
+    test("newFlashcard should pick flashcard from needToReview if finish scheduled ones", async () => {
+        // arrange
+        (BookService as any).getBook = () => book1;
+        db.sessions = [{
+            id: "test-session",
+            bookId: "123",
+            scheduled: ["fc1", "fc2"],
+            needToReview: ["fc3"],
+            totalFlashcards: 5,
+            shown: 2,
+            status: "on-going",
+            startedAt: 0,
+        }];
+
+        // act
+        const result = await FlashcardService.nextFlashcard("test-session");
+
+        // assert
+        expect(result).contains({
+            hash: "fc3",
+            position: 2,
+            totalFlashcards: 5
         });
     });
 });
