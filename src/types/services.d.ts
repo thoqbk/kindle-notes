@@ -98,3 +98,9 @@ export interface Db {
     sm2: FlashcardSm2[];
     save: () => Promise<void>
 }
+
+export interface SaveResultRequest {
+    sessionId: string;
+    flashcardHash: string;
+    grade: number; // 0 to 4
+}

@@ -3,7 +3,8 @@ import { v4 as uuid } from "uuid";
 import logger from "../logger";
 import { now } from "../utils/times";
 import db from "../db";
-import { Book, Flashcard, FlashcardDto, NewStudySessionRequest, StudySession } from "../types/services";
+import sm2 from "../utils/sm2";
+import { Book, Flashcard, FlashcardDto, NewStudySessionRequest, SaveResultRequest, StudySession, FlashcardSm2 } from "../types/services";
 import * as BookService from "./book-service";
 
 const numberOfFlashcards = 10;
@@ -60,6 +61,26 @@ export const nextFlashcard = async (sessionId: string): Promise<FlashcardDto> =>
     session.shown++;
     await db.save();
     return await getFlashcardDto(session, hash);
+};
+
+export const saveResult = async (request: SaveResultRequest): Promise<void> => {
+    const session = db.sessions.find(s => s.id === request.sessionId);
+    if (!session) {
+        throw new Error(`Session not found ${request.sessionId}`);
+    }
+    if (session.scheduled.indexOf(request.flashcardHash) < 0 && session.needToReview.indexOf(request.flashcardHash) < 0) {
+        throw new Error(`Flashcard not found in the session. Session ${session.id}, hash ${request.flashcardHash}`);
+    }
+    await updateSm2(session, request.flashcardHash, request.grade);
+    session.needToReview = session.needToReview.filter(v => v !== request.flashcardHash);
+    if (request.grade < 2) {
+        session.needToReview.push(request.flashcardHash);
+    }
+    if (session.shown === session.totalFlashcards) {
+        session.status = "completed";
+        session.endedAt = now();
+    }
+    await db.save();
 };
 
 export const generate = async (bookId?: string): Promise<FlashcardDto[]> => {
@@ -163,3 +184,27 @@ const getFlashcardDto = async (session: StudySession, hash: string): Promise<Fla
 };
 
 const filterValidFlashcard = (flashcard: Flashcard): boolean => !flashcard.excluded;
+
+const updateSm2 = async (session: StudySession, hash: string, grade: number) => {
+    const defaultSm2: FlashcardSm2 = {
+        bookId: session.bookId,
+        hash,
+        easinessFactor: 2.5,
+        repetitionNumber: 0,
+        interval: 0,
+        lastReview: 0
+    };
+    const currentSm2 = db.sm2.find(v => v.bookId === session.bookId && v.hash === hash) || defaultSm2;
+    const result = sm2({
+        userGrade: grade,
+        repetitionNumber: currentSm2.repetitionNumber,
+        easinessFactor: currentSm2.easinessFactor,
+        interval: currentSm2.interval
+    });
+    db.sm2 = db.sm2.filter(v => v.bookId !== session.bookId || v.hash !== hash);
+    db.sm2.push({
+        ...result,
+        ...currentSm2,
+        lastReview: now(),
+    });
+};

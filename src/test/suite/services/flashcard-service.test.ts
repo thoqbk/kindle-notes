@@ -188,4 +188,68 @@ suite("FlashcardService Test Suite", () => {
             totalFlashcards: 5
         });
     });
+
+    test("saveResult should update Sm2 in Db", async () => {
+        // arrange
+        (BookService as any).getBook = () => book1;
+        (Times as any).now = () => 12345;
+        db.sessions = [{
+            id: "test-session",
+            bookId: "123",
+            scheduled: ["fc1", "fc2"],
+            needToReview: ["fc3"],
+            totalFlashcards: 5,
+            shown: 2,
+            status: "on-going",
+            startedAt: 0,
+        }];
+        db.sm2 = [];
+
+        // act
+        await FlashcardService.saveResult({
+            sessionId: "test-session",
+            flashcardHash: "fc3",
+            grade: 3,
+        });
+
+        // assert
+        expect(db.sm2).has.lengthOf(1);
+        expect(db.sessions[0]).to.deep.contains({
+            scheduled: ["fc1", "fc2"],
+            needToReview: [],
+            status: "on-going",
+        });
+        expect(db.sm2[0].lastReview).to.eq(12345);
+    });
+
+    test("saveResult should mark session as completed if it's the last flashcard", async () => {
+        // arrange
+        (BookService as any).getBook = () => book1;
+        (Times as any).now = () => 12345;
+        db.sessions = [{
+            id: "test-session",
+            bookId: "123",
+            scheduled: ["fc1", "fc2"],
+            needToReview: ["fc3"],
+            totalFlashcards: 5,
+            shown: 5,
+            status: "on-going",
+            startedAt: 0,
+        }];
+        db.sm2 = [];
+
+        // act
+        await FlashcardService.saveResult({
+            sessionId: "test-session",
+            flashcardHash: "fc1",
+            grade: 1,
+        });
+
+        // assert
+        expect(db.sessions[0]).to.deep.contains({
+            scheduled: ["fc1", "fc2"],
+            needToReview: ["fc3", "fc1"],
+            status: "completed",
+        });
+    });
 });
