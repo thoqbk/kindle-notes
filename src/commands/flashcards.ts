@@ -123,7 +123,10 @@ const onDidReceiveMessage = async (message: any) => {
     }
 };
 
-const onDidDispose = () => {
+const onDidDispose = async () => {
+    if (currentSession?.status === "on-going") {
+        await FlashcardService.cancel(currentSession.id);
+    }
     currentSession = undefined;
     currentPanel = undefined;
     logger.info("Released resources because webview was disposed");
@@ -138,7 +141,8 @@ const initFlashcard = async () => {
         return;
     }
     if (currentFlashcard) {
-        await FlashcardService.refreshCards([currentFlashcard]);
+        const result = await FlashcardService.refreshCards([currentFlashcard]);
+        currentFlashcard = result[0];
         sendCurrentFlashcard(currentPanel, "initFlashcard");
     }
 };

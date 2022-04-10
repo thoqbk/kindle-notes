@@ -33,6 +33,25 @@ export const newStudySession = async (request: NewStudySessionRequest): Promise<
     return retVal;
 };
 
+export const getStudySession = async (sessionId: string): Promise<StudySession | undefined> => {
+    return db.sessions.find(s => s.id === sessionId);
+};
+
+export const cancel = async (sessionId: string): Promise<StudySession> => {
+    logger.info(`Cancelling session ${sessionId}`);
+    const session = await getStudySession(sessionId);
+    if (!session) {
+        throw new Error(`Session not found ${sessionId}`);
+    }
+    if (session.status !== "on-going") {
+        throw new Error(`Cannot cancel this session ${sessionId}. Invalid session status: ${session.status}`);
+    }
+    session.status = "cancelled";
+    await db.save();
+    logger.info(`Session ${session} has been cancelled`);
+    return session;
+};
+
 export const nextFlashcard = async (sessionId: string): Promise<FlashcardDto> => {
     const session = db.sessions.find(s => s.id === sessionId);
     if (!session) {
