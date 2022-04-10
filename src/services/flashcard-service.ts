@@ -14,10 +14,14 @@ export const newStudySession = async (request: NewStudySessionRequest): Promise<
     if (!book) {
         throw new Error(`Book not found ${request.bookId}`);
     }
+    const scheduled = pickFlashcards(book, request.totalFlashcards).map(fc => fc.hash);
+    if (!scheduled.length) {
+        throw new Error(`No flashcards available for this book`);
+    }
     const retVal: StudySession = {
         id: uuid(),
         bookId: book.id,
-        scheduled: pickFlashcards(book, request.totalFlashcards).map(fc => fc.hash),
+        scheduled,
         needToReview: [],
         totalFlashcards: request.totalFlashcards,
         shown: 0,

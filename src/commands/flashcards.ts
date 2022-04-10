@@ -27,6 +27,18 @@ type OpenFlashcardMarkdownPayload = {
 const viewType = "kindleNotes";
 
 export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: string) => {
+    currentFlashcard = undefined;
+    try {
+        currentSession = await FlashcardService.newStudySession({
+            bookId,
+            totalFlashcards: defaultTotalFlashcards,
+        });
+    } catch (e) {
+        logger.error(`Cannot create new session for the book ${bookId}`);
+        vscode.window.showErrorMessage(`Cannot start study session for this book. Error: ${(e as Error).message}`);
+        return;
+    }
+
     const column = vscode.window.activeTextEditor?.viewColumn || vscode.ViewColumn.One;
     if (currentPanel) {
         logger.info("There's already a Kindle Notes webview, make it active instead of creating a new one");
@@ -41,11 +53,6 @@ export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: 
     currentPanel.webview.html = await getHtmlForWebView(currentPanel.webview, context);
     currentPanel.webview.onDidReceiveMessage(onDidReceiveMessage);
     currentPanel.onDidDispose(onDidDispose, null, context.subscriptions);
-    currentFlashcard = undefined;
-    currentSession = await FlashcardService.newStudySession({
-        bookId,
-        totalFlashcards: defaultTotalFlashcards,
-    });
 };
 
 const getHtmlForWebView = async (webview: vscode.Webview, context: vscode.ExtensionContext): Promise<string> => {
