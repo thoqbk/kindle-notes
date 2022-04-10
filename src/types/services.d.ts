@@ -96,7 +96,7 @@ export interface FlashcardSm2 {
 export interface Db {
     sessions: StudySession[];
     sm2: FlashcardSm2[];
-    save: () => Promise<void>
+    save: () => Promise<void>;
 }
 
 export interface SaveResultRequest {

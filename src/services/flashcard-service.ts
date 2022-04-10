@@ -192,8 +192,8 @@ const updateSm2 = async (session: StudySession, hash: string, grade: number) => 
     });
     db.sm2 = db.sm2.filter(v => v.bookId !== session.bookId || v.hash !== hash);
     db.sm2.push({
-        ...result,
         ...currentSm2,
+        ...result,
         lastReview: now(),
     });
 };
