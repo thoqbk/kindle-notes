@@ -128,7 +128,7 @@ const FlashcardRoute = () => {
   );
 
   const renderLevelButtons = () => _.times(5).map(n => {
-    return <button onClick={() => handleLevelClicked(n + 1)} type="button" className={`btn lvl-${n + 1}`} key={`btn-${n}`}>
+    return <button onClick={() => handleLevelClicked(n)} type="button" className={`btn lvl-${n + 1}`} key={`btn-${n}`}>
       { n + 1 }
       { n === 0 ? (<><br/>Not At All</>) : null }
       { n === 4 ? (<><br/>Perfectly</>) : null }
