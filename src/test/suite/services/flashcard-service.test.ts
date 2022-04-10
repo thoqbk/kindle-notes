@@ -63,16 +63,55 @@ suite("FlashcardService Test Suite", () => {
         });
 
         // assert
-        expect(result.scheduled.length).eqls(2);
-        expect(result).contains({
+        expect(result).to.deep.contain({
             bookId: "123",
+            scheduled: ["fc1", "fc2"],
             totalFlashcards: 3,
             shown: 0,
             status: "on-going"
         });
     });
 
-    test("newFlashcard should pick flashcard from scheduled if needToReview is not full", async () => {
+    test("newStudySession should return randomize flashcards if there's no validAge cards", async () => {
+        // arrange
+        (BookService as any).getBook = () => book1;
+        (Times as any).now = () => 0;
+        db.sm2 = [{
+            hash: "fc3",
+            bookId: "123",
+            easinessFactor: 3,
+            repetitionNumber: 1.2,
+            interval: 1,
+            lastReview: 0
+        }, {
+            hash: "fc1",
+            bookId: "123",
+            easinessFactor: 2,
+            repetitionNumber: 4.2,
+            interval: 1,
+            lastReview: 0
+        }, {
+            hash: "fc2",
+            bookId: "123",
+            easinessFactor: 2,
+            repetitionNumber: 4.2,
+            interval: 1,
+            lastReview: 0
+        }];
+
+        // act
+        const result = await FlashcardService.newStudySession({
+            bookId: "123",
+            totalFlashcards: 3
+        });
+
+        // assert
+        expect(result).to.deep.contain({
+            scheduled: ["fc1", "fc2", "fc3"]
+        });
+    });
+
+    test("nextFlashcard should pick flashcard from scheduled if needToReview is not full", async () => {
         // arrange
         (BookService as any).getBook = () => book1;
         db.sessions = [{
@@ -97,7 +136,7 @@ suite("FlashcardService Test Suite", () => {
         });
     });
 
-    test("newFlashcard should pick flashcard from needToReview if finish scheduled ones", async () => {
+    test("nextFlashcard should pick flashcards from needToReview if finish scheduled ones", async () => {
         // arrange
         (BookService as any).getBook = () => book1;
         db.sessions = [{
