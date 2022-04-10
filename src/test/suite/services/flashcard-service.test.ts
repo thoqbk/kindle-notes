@@ -136,7 +136,14 @@ suite("FlashcardService Test Suite", () => {
             status: "on-going",
             startedAt: 0,
         }];
-        db.sm2 = [];
+        db.sm2 = [{
+            bookId: "123",
+            hash: "fc3",
+            easinessFactor: 1.2,
+            repetitionNumber: 0,
+            interval: 0,
+            lastReview: 0,
+        }];
 
         // act
         await FlashcardService.saveResult({
