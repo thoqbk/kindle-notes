@@ -22,6 +22,7 @@ Read more here: https://www.educative.io/blog/what-is-cap-theorem
   location: 1373,
   position: 3,
   totalFlashcards: 10,
+  lastGrade: 3,
 };
 
 const FlashcardRoute = () => {
@@ -128,16 +129,18 @@ const FlashcardRoute = () => {
   );
 
   const renderLevelButtons = () => _.times(5).map(n => {
-    return <button onClick={() => handleLevelClicked(n)} type="button" className={`btn lvl-${n + 1}`} key={`btn-${n}`}>
+    return <button onClick={() => handleLevelClicked(n)} type="button" className={`btn lvl-${n}`} key={`btn-${n}`}>
       { n + 1 }
       { n === 0 ? (<><br/>Not At All</>) : null }
       { n === 4 ? (<><br/>Perfectly</>) : null }
     </button>
   });
 
+  const lastGradeClass = `last-grade-${flashcard.lastGrade !== undefined ? flashcard.lastGrade : "default"}`;
+
   return (
     <div className="container study-page">
-      <div className="inner cover">
+      <div className={`inner cover ${lastGradeClass}`}>
         {renderHeader()}
         {renderBody()}
         <hr />

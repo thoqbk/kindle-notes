@@ -3,27 +3,27 @@
   width: 100%;
 }
 
-.lead > .lvl-1 {
+.lead > .lvl-0 {
   color: #FFF;
   background-color: #AA0080;
 }
 
-.lead > .lvl-2 {
+.lead > .lvl-1 {
   color: #FFF;
   background-color: #FF8A47;
 }
 
-.lead > .lvl-3 {
+.lead > .lvl-2 {
   color: #FFF;
   background-color: #FFDD00;
 }
 
-.lead > .lvl-4 {
+.lead > .lvl-3 {
   color: #FFF;
   background-color: #7FAE2E;
 }
 
-.lead > .lvl-5 {
+.lead > .lvl-4 {
   color: #FFF;
   background-color: #00a8d7;
 }
@@ -57,4 +57,24 @@
 
 .flashcard-header {
   height: 30px;
+}
+
+.last-grade-0 {
+  border-left: 3px solid #AA0080;
+}
+
+.last-grade-1 {
+  border-left: 3px solid #FF8A47;
+}
+
+.last-grade-2 {
+  border-left: 3px solid #FFDD00;
+}
+
+.last-grade-3 {
+  border-left: 3px solid #7FAE2E;
+}
+
+.last-grade-4 {
+  border-left: 3px solid #00a8d7;
 }

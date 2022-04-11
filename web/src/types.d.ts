@@ -11,6 +11,8 @@ export interface FlashcardDto {
 
     position: number; // e.g. 1 of 10
     totalFlashcards: number;
+
+    lastGrade?: number; // 0 to 4
 }
 
 export interface FlashcardPayload {
