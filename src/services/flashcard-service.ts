@@ -198,6 +198,7 @@ const getFlashcardDto = async (session: StudySession, hash: string): Promise<Fla
         location: flashcard.location,
         position: session.shown - 1,
         totalFlashcards: session.totalFlashcards,
+        lastGrade: db.sm2.find(v => v.bookId === session.bookId && v.hash === hash)?.lastGrade,
     };
 };
 
@@ -208,7 +209,8 @@ const updateSm2 = async (session: StudySession, hash: string, grade: number) => 
         easinessFactor: 2.5,
         repetitionNumber: 0,
         interval: 0,
-        lastReview: 0
+        lastReview: 0,
+        lastGrade: 0,
     };
     const currentSm2 = db.sm2.find(v => v.bookId === session.bookId && v.hash === hash) || defaultSm2;
     const result = sm2({

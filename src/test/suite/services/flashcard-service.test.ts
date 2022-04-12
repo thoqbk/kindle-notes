@@ -46,14 +46,16 @@ suite("FlashcardService Test Suite", () => {
             easinessFactor: 3,
             repetitionNumber: 1.2,
             interval: 2,
-            lastReview: 1649499442925
+            lastReview: 1649499442925,
+            lastGrade: 1,
         }, {
             hash: "fc1",
             bookId: "123",
             easinessFactor: 2,
             repetitionNumber: 4.2,
             interval: 1,
-            lastReview: 1649413042925
+            lastReview: 1649413042925,
+            lastGrade: 3,
         }];
 
         // act
@@ -82,21 +84,24 @@ suite("FlashcardService Test Suite", () => {
             easinessFactor: 3,
             repetitionNumber: 1.2,
             interval: 1,
-            lastReview: 0
+            lastReview: 0,
+            lastGrade: 1,
         }, {
             hash: "fc1",
             bookId: "123",
             easinessFactor: 2,
             repetitionNumber: 4.2,
             interval: 1,
-            lastReview: 0
+            lastReview: 0,
+            lastGrade: 2,
         }, {
             hash: "fc2",
             bookId: "123",
             easinessFactor: 2,
             repetitionNumber: 4.2,
             interval: 1,
-            lastReview: 0
+            lastReview: 0,
+            lastGrade: 3,
         }];
 
         // act
@@ -161,6 +166,36 @@ suite("FlashcardService Test Suite", () => {
         });
     });
 
+    test("nextFlashcard should return lastGrade if exists", async () => {
+        // arrange
+        (BookService as any).getBook = () => book1;
+        db.sessions = [{
+            id: "test-session",
+            bookId: "123",
+            scheduled: ["fc1", "fc2"],
+            needToReview: [],
+            totalFlashcards: 5,
+            shown: 0,
+            status: "on-going",
+            startedAt: 0,
+        }];
+        db.sm2 = [{
+            hash: "fc1",
+            bookId: "123",
+            easinessFactor: 2,
+            repetitionNumber: 4.2,
+            interval: 1,
+            lastReview: 1649413042925,
+            lastGrade: 3,
+        }];
+
+        // act
+        const result = await FlashcardService.nextFlashcard("test-session");
+
+        // assert
+        expect(result.lastGrade).to.equal(3);
+    });
+
     test("saveResult should update Sm2 in Db", async () => {
         // arrange
         (BookService as any).getBook = () => book1;
@@ -182,6 +217,7 @@ suite("FlashcardService Test Suite", () => {
             repetitionNumber: 0,
             interval: 0,
             lastReview: 0,
+            lastGrade: 3,
         }];
 
         // act

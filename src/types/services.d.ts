@@ -46,6 +46,7 @@ export interface FlashcardDto {
     
     position: number; // e.g. 0, 1, 9
     totalFlashcards: number; // e.g. 10
+    lastGrade?: number;
 }
 
 export interface NewStudySessionRequest {
@@ -91,6 +92,7 @@ export interface FlashcardSm2 {
     repetitionNumber: number;
     interval: number; // days
     lastReview: number; // ts
+    lastGrade: number;
 }
 
 export interface Db {
