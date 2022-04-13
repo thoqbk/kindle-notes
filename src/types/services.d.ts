@@ -44,6 +44,7 @@ export interface FlashcardDto {
     excluded?: boolean;
     page?: number;
     location?: number;
+    src: string;
     
     position: number; // e.g. 0, 1, 9
     totalFlashcards: number; // e.g. 10

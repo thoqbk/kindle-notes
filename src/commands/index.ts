@@ -5,6 +5,8 @@ import * as Transformers from "../utils/transformers";
 import { syncBooks } from "./books";
 import * as Files from "../utils/files";
 import config from "../config";
+import prettier, { shouldHandleOnWillSaveTextDocument } from "../utils/prettier";
+import { now } from "../utils/times";
 
 const studyCommand = "kindle-notes.study";
 const studyThisFileCommand = "kindle-notes.studyThisFile";
@@ -14,6 +16,7 @@ const kindleNotesKey = "kindle-notes";
 const flashcardsHomePathKey = "flashcardsHomePath";
 
 export const registerCommands = (context: vscode.ExtensionContext) => {
+    logger.info("Registering commands");
     context.subscriptions.push(vscode.commands.registerCommand(studyCommand, () => {
         runCommand(studyCommand, context, () => openFlashcards(context));
     }));
@@ -34,6 +37,8 @@ export const registerCommands = (context: vscode.ExtensionContext) => {
             await syncBooks();
         });
     }));
+    context.subscriptions.push(vscode.workspace.onWillSaveTextDocument(handleOnWillSaveTextDocument));
+    logger.info("All commands have been registered");
 };
 
 type RunCommandFn = () => Promise<any>;
@@ -71,4 +76,19 @@ const runCommand = async (command: string, context: vscode.ExtensionContext, fn:
         logger.error(`Failed when running ${command}. Error ${e}`);
     }
     logger.info(`Finish running command ${command}`);
+};
+
+const handleOnWillSaveTextDocument = (event: vscode.TextDocumentWillSaveEvent) => {
+    const start = now();
+    if (shouldHandleOnWillSaveTextDocument(event)) {
+        const result = prettier(event.document.getText());
+        if (result.status === "modified") {
+            const firstLine = event.document.lineAt(0);
+            const lastLine = event.document.lineAt(event.document.lineCount - 1);
+            const textRange = new vscode.Range(firstLine.range.start, lastLine.range.end);
+            const textEdit = vscode.TextEdit.replace(textRange, result.markdownContent);
+            event.waitUntil(Promise.resolve([textEdit]));
+            logger.info(`Prettier run in ${now() - start}ms`);
+        }
+    }
 };

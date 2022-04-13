@@ -1,6 +1,9 @@
+import * as vscode from "vscode";
+import * as path from "path";
 import { Book, Flashcard, PrettierResult } from "../types/services";
 import * as Transformers from "../utils/transformers";
 import { now } from "./times";
+import config from "../config";
 
 const prettier = (markdownContent: string): PrettierResult => {
     try {
@@ -34,6 +37,15 @@ const prettier = (markdownContent: string): PrettierResult => {
             status: "invalid-input"
         };
     }
+};
+
+export const shouldHandleOnWillSaveTextDocument = (event: vscode.TextDocumentWillSaveEvent): boolean => {
+    const parsed = path.parse(event.document.uri.fsPath);
+    const flashcardHomePath = config.getFlashcardsHomePath();
+    return event.reason === vscode.TextDocumentSaveReason.Manual
+        && flashcardHomePath
+        && parsed.ext === ".md"
+        && parsed.dir.indexOf(flashcardHomePath) === 0;
 };
 
 export default prettier;

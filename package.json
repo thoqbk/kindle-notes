@@ -29,7 +29,8 @@
 	"activationEvents": [
 		"onCommand:kindle-notes.study",
 		"onCommand:kindle-notes.studyThisFile",
-		"onCommand:kindle-notes.syncBooks"
+		"onCommand:kindle-notes.syncBooks",
+		"onLanguage:markdown"
 	],
 	"main": "./out/extension.js",
 	"contributes": {

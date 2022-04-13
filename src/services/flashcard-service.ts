@@ -48,7 +48,7 @@ export const cancel = async (sessionId: string): Promise<StudySession> => {
     }
     session.status = "cancelled";
     await db.save();
-    logger.info(`Session ${session} has been cancelled`);
+    logger.info(`Session ${session.id} has been cancelled`);
     return session;
 };
 
@@ -199,6 +199,7 @@ const getFlashcardDto = async (session: StudySession, hash: string): Promise<Fla
         position: session.shown - 1,
         totalFlashcards: session.totalFlashcards,
         lastGrade: db.sm2.find(v => v.bookId === session.bookId && v.hash === hash)?.lastGrade,
+        src: flashcard.src,
     };
 };
 

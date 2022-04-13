@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FlashcardDto, FlashcardPayload } from "../types";
-import { postMessage } from "../utils/vsCode";
+import { postMessage } from "../utils/vsCodexx";
 import "./FlashcardRoute.css";
 
 const defaultFlashcard: FlashcardDto = {
@@ -23,6 +23,7 @@ Read more here: https://www.educative.io/blog/what-is-cap-theorem
   position: 3,
   totalFlashcards: 10,
   lastGrade: 3,
+  src: "kindle",
 };
 
 const FlashcardRoute = () => {
@@ -118,8 +119,14 @@ const FlashcardRoute = () => {
       {flashcard.location && ` (location: ${flashcard.location})`}
       {flashcard.page && ` (page: ${flashcard.page})`}
       {" "}
-      <span className="flashcard-link" onClick={handleOpenKindleClicked}>open Kindle</span>
-      {" "}/{" "}
+      {
+        flashcard.src === "kindle" ? (
+          <>
+            <span className="flashcard-link" onClick={handleOpenKindleClicked}>open Kindle</span>
+            {" "}/{" "}
+          </>
+        ) : null
+      }
       <span className="flashcard-link" onClick={handleOpenFlashcardMarkdownClicked}>open Markdown</span>
     </p>
   );

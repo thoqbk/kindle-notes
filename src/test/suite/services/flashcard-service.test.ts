@@ -137,7 +137,8 @@ suite("FlashcardService Test Suite", () => {
         expect(result).contains({
             hash: "fc2",
             position: 1,
-            totalFlashcards: 5
+            totalFlashcards: 5,
+            src: "user",
         });
     });
 
