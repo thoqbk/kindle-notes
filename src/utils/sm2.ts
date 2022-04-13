@@ -1,11 +1,11 @@
-import { Sm2Request, Sm2Response } from "../types/services";
+import { Sm2Request, Sm2Result } from "../types/services";
 
 /**
  * Sm2 algorithm:
  * https://en.wikipedia.org/wiki/SuperMemo
  */
-const sm2 = (request: Sm2Request): Sm2Response => {
-    const retVal: Sm2Response = {
+const sm2 = (request: Sm2Request): Sm2Result => {
+    const retVal: Sm2Result = {
         repetitionNumber: request.repetitionNumber,
         easinessFactor: request.easinessFactor,
         interval: request.interval,

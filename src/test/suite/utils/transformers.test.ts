@@ -55,8 +55,8 @@ suite("Transformers Util Test Suite", () => {
             photo: "test-photo",
             flashcards: [],
         };
-        const markdown = Transformers.bookToMarkdown(book);
-        assert.strictEqual(markdown, markdow1);
+        const result = Transformers.bookToMarkdown(book);
+        expect(result).to.equal(markdow1);
     });
 
     test("rawNoteToNote should return note with hash value", () => {
@@ -74,16 +74,38 @@ suite("Transformers Util Test Suite", () => {
         const flashcard: Flashcard = {
             hash: "ZGFkc2FkZTEyeA==",
             content: "test-content",
+            src: "user"
         };
         const result = Transformers.flashcardToMarkdown(flashcard);
         expect(result.indexOf("hash: ZGFkc2FkZTEyeA==")).greaterThanOrEqual(0);
+    });
+
+    test("flashcardToMarkdown should persist src if it's non `user`", () => {
+        const flashcard: Flashcard = {
+            hash: "123",
+            content: "test-content",
+            src: "kindle",
+        };
+        const result = Transformers.flashcardToMarkdown(flashcard);
+        expect(result.indexOf("src: kindle")).greaterThanOrEqual(0);
+    });
+
+    test("flashcardToMarkdown should NOT persist `user` src", () => {
+        const flashcard: Flashcard = {
+            hash: "123",
+            content: "test-content",
+            src: "user",
+        };
+        const result = Transformers.flashcardToMarkdown(flashcard);
+        expect(result.indexOf("user")).to.not.greaterThanOrEqual(0);
     });
 
     test("flashcardToMarkdown should persist backside", () => {
         const flashcard: Flashcard = {
             hash: "ZGFkc2VvvTEyeA==",
             content: "test-content 747",
-            backside: "this is backside content"
+            backside: "this is backside content",
+            src: "kindle",
         };
         const result = Transformers.flashcardToMarkdown(flashcard);
         expect(result).to.contain("%%\n\nthis is backside content");

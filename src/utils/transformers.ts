@@ -7,20 +7,23 @@ const fm = require("front-matter");
 
 const defaultHash = "";
 
+export const calcHash = (content: string): string => Transformers.from(md5(content), "hex").toString("base64");
+
 export const noteToFlashcard = (note: Note): Flashcard => {
     const idItems = note?.rawId.split("-");
     const id = (idItems && idItems.length === 2 && idItems[1]) || "";
     const content = note.content?.trim();
-    const hash = Transformers.from(md5(id || content), "hex").toString("base64");
-
+    const hash = calcHash(id || content);
+    
     const pageItems = note.highlightHeader?.split("Page:");
     const locationItems = note.highlightHeader?.split("Location:");
-
+    
     return {
         content,
         hash,
         page: pageItems?.length === 2 ? +(pageItems[1].replace(/\D/g, "")) : undefined,
-        location: locationItems?.length === 2 ? +locationItems[1].replace(/\D/g, "") : undefined
+        location: locationItems?.length === 2 ? +locationItems[1].replace(/\D/g, "") : undefined,
+        src: "kindle",
     };
 };
 
@@ -29,14 +32,17 @@ export const flashcardToMarkdown = (flashcard: Flashcard): string => {
     if (flashcard.excluded === true) {
         metadata += (metadata && "\n") + "excluded: true";
     }
-    if (!!flashcard.location) {
+    if (flashcard.location) {
         metadata += (metadata && "\n") + `location: ${flashcard.location}`;
     }
-    if (!!flashcard.page) {
+    if (flashcard.page) {
         metadata += (metadata && "\n") + `page: ${flashcard.page}`;
     }
-    if (!!flashcard.hash) {
+    if (flashcard.hash) {
         metadata += (metadata && "\n") + `hash: ${flashcard.hash}`;
+    }
+    if (flashcard.src !== "user") {
+        metadata += (metadata && "\n") + `src: ${flashcard.src}`;
     }
     if (metadata) {
         metadata = `\n\n<!--\n${metadata}\n-->`;
@@ -54,6 +60,7 @@ export const mardownToFlashcard = (markdown: string): Flashcard => {
     const retVal: Flashcard = {
         content: contentItems[0].trim(),
         hash: defaultHash,
+        src: "user",
     };
     if (contentItems.length === 2 && contentItems[1].trim()) {
         retVal.backside = contentItems[1].trim();
@@ -71,6 +78,7 @@ export const mardownToFlashcard = (markdown: string): Flashcard => {
             retVal.page = metadata.page;
         }
         retVal.hash = metadata.hash || retVal.hash;
+        retVal.src = metadata.src || retVal.src;
     }
     return retVal;
 };
@@ -85,7 +93,7 @@ export const bookToMarkdown = (book: Book): string => {
 
 export const markdownToBook = (markdown: string): Book => {
     const frontMatter = fm(markdown);
-    if (frontMatter.attributes === null) {
+    if (!frontMatter?.attributes?.name?.trim().length) {
         throw new Error(`Invalid markdown content ${markdown}`);
     }
     return {

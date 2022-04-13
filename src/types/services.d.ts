@@ -11,6 +11,7 @@ export interface Note {
 export interface Flashcard {
     hash: string; // unique within the book
     content: string;
+    src: "kindle" | "user";
     backside?: string;
     excluded?: boolean;
     page?: number;
@@ -79,7 +80,7 @@ export interface Sm2Request {
     interval: number;
 }
 
-export interface Sm2Response {
+export interface Sm2Result {
     repetitionNumber: number;
     easinessFactor: number;
     interval: number;
@@ -105,4 +106,9 @@ export interface SaveResultRequest {
     sessionId: string;
     flashcardHash: string;
     grade: number; // 0 to 4
+}
+
+export interface PrettierResult {
+    markdownContent: string;
+    status: "modified" | "no-change" | "invalid-input";
 }
