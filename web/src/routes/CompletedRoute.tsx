@@ -1,4 +1,4 @@
-import { closeWebview } from "../utils/vsCodexx";
+import { closeWebview } from "../utils/vscode";
 
 const CompletedRoute = () => {
   return (

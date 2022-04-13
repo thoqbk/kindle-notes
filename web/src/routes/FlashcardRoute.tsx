@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FlashcardDto, FlashcardPayload } from "../types";
-import { postMessage } from "../utils/vsCodexx";
+import { postMessage } from "../utils/vscode";
 import "./FlashcardRoute.css";
 
 const defaultFlashcard: FlashcardDto = {
