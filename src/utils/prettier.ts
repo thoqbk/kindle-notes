@@ -1,5 +1,6 @@
 import { Book, Flashcard, PrettierResult } from "../types/services";
 import * as Transformers from "../utils/transformers";
+import { now } from "./times";
 
 const prettier = (markdownContent: string): PrettierResult => {
     try {
@@ -7,6 +8,7 @@ const prettier = (markdownContent: string): PrettierResult => {
         const existingHashes = new Set(book.flashcards.map(fc => fc.hash).filter(hash => hash));
         const newBook: Book = {
             ...book,
+            id: book.id || Transformers.calcHash(`${book.name}${now()}`),
             flashcards: [],
         };
         for (const flashcard of book.flashcards) {

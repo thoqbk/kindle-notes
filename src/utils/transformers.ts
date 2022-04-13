@@ -7,6 +7,7 @@ import { now } from "./times";
 const fm = require("front-matter");
 
 const defaultHash = "";
+const defaultId = "";
 
 export const calcHash = (content: string, existingHashes?: Set<string>): string => {
     for (let idx = 0; idx < 10; idx++) {
@@ -106,8 +107,9 @@ export const markdownToBook = (markdown: string): Book => {
     if (!frontMatter?.attributes?.name?.trim().length) {
         throw new Error(`Invalid markdown content ${markdown}`);
     }
+    const id = frontMatter.attributes.id ? `${frontMatter.attributes.id}` : defaultId;
     return {
-        id: `${frontMatter.attributes.id}`,
+        id,
         name: frontMatter.attributes.name,
         author: frontMatter.attributes.author,
         photo: frontMatter.attributes.photo,
