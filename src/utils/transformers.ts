@@ -2,12 +2,22 @@ import { Buffer as Transformers } from "buffer";
 import * as yaml from "js-yaml";
 import * as md5 from "md5";
 import { Book, Flashcard, Note } from "../types/services";
+import { now } from "./times";
 
 const fm = require("front-matter");
 
 const defaultHash = "";
 
-export const calcHash = (content: string): string => Transformers.from(md5(content), "hex").toString("base64");
+export const calcHash = (content: string, existingHashes?: Set<string>): string => {
+    for (let idx = 0; idx < 10; idx++) {
+        const toHash = idx === 0 ? content : `${content}${now()}`;
+        const result = Transformers.from(md5(toHash), "hex").toString("base64");
+        if (!existingHashes || !existingHashes.has(result)) {
+            return result;
+        }
+    }
+    throw new Error(`Cannot generate a unique hash for the content ${content}`);
+};
 
 export const noteToFlashcard = (note: Note): Flashcard => {
     const idItems = note?.rawId.split("-");
@@ -77,7 +87,7 @@ export const mardownToFlashcard = (markdown: string): Flashcard => {
         if (metadata.page) {
             retVal.page = metadata.page;
         }
-        retVal.hash = metadata.hash || retVal.hash;
+        retVal.hash = `${metadata.hash}` || retVal.hash;
         retVal.src = metadata.src || retVal.src;
     }
     return retVal;
@@ -113,10 +123,4 @@ const toFlashcards = (markdownBody: string): Flashcard[] => {
         .filter(fc => !!fc.content);
 };
 
-const frontMatter = (book: Book) => {
-    return `---
-id: ${book.id}
-name: "${book.name}"
----
-`;
-};
+const frontMatter = (book: Book) => `---\nid: ${book.id}\nname: "${book.name}"\n---\n`;
