@@ -3,15 +3,13 @@ import * as path from "path";
 import * as _ from "lodash";
 import config from "../config";
 import logger from "../logger";
-import { Book, Flashcard, FlashcardLocation } from "../types/services";
+import { Book, Flashcard, FlashcardLocation, StringNumberMap, StringStringMap } from "../types/services";
 import * as Transformers from "../utils/transformers";
 import * as Files from "../utils/files";
 
 const fm = require("front-matter");
 
-let cachedMarkdowFilePaths: { // bookId -> fullFilePath
-    [key: string]: string
-} = {};
+let cachedMarkdowFilePaths: StringStringMap = {}; // bookId -> fullFilePath
 
 type Markdown = {
     bookId: string;
@@ -115,36 +113,48 @@ const allMarkdowns = async (): Promise<Markdown[]> => {
  * Pick user flashCards in markdown and merge with kindleFlashcards to keep their relative order
  */
 const mergeFlashcards = (markdownFlashcards: Flashcard[], kindleFlashcards: Flashcard[]): Flashcard[] => {
-    const retVal: Flashcard[] = [];
-    let markdownIdx = 0;
-    let kindleIdx = 0;
-
-    const kindleHashes = new Set(kindleFlashcards.map(fc => fc.hash));
-    while (markdownIdx < markdownFlashcards.length && kindleIdx < kindleFlashcards.length) {
-        const markdownFc = markdownFlashcards[markdownIdx];
-        if (markdownFc.src === "user") {
-            retVal.push({ ...markdownFc });
-            markdownIdx++;
-        } else if (!kindleHashes.has(markdownFc.hash)) {
-            markdownIdx++;
-        } else {
-            while (kindleIdx < kindleFlashcards.length && markdownFc.hash !== kindleFlashcards[kindleIdx].hash) {
-                retVal.push({ ...kindleFlashcards[kindleIdx++] });
+    const retVal: Flashcard[] = [
+        ...markdownFlashcards.filter(md => md.src === "user"),
+        ...kindleFlashcards,
+    ];
+    const kindleFcPositions: StringNumberMap = _.fromPairs(kindleFlashcards.map((kd, idx) => [kd.hash, idx]));
+    const userFcPositions: StringNumberMap = {};
+    const prevExistingHashes: StringStringMap = {};
+    let prevExistingHash: string | undefined;
+    for (let idx = 0; idx < markdownFlashcards.length; idx++) {
+        if (markdownFlashcards[idx].src === "user") {
+            userFcPositions[markdownFlashcards[idx].hash] = idx;
+            if (prevExistingHash) {
+                prevExistingHashes[markdownFlashcards[idx].hash] = prevExistingHash;
             }
-            retVal.push({ ...markdownFc });
-            markdownIdx++;
-            kindleIdx++;
+        } else if (kindleFcPositions[markdownFlashcards[idx].hash] !== undefined) {
+            prevExistingHash = markdownFlashcards[idx].hash;
         }
     }
-    while (markdownIdx < markdownFlashcards.length) {
-        if (markdownFlashcards[markdownIdx].src === "user") {
-            retVal.push({ ...markdownFlashcards[markdownIdx] });
+
+    const comparator = (fc1: Flashcard, fc2: Flashcard): number => {
+        if (fc1.src === fc2.src) {
+            if (fc1.src === "user") {
+                return userFcPositions[fc1.hash] - userFcPositions[fc2.hash];
+            } else {
+                return kindleFcPositions[fc1.hash] - kindleFcPositions[fc2.hash];
+            }
         }
-        markdownIdx++;
-    }
-    while (kindleIdx < kindleFlashcards.length) {
-        retVal.push({ ...kindleFlashcards[kindleIdx++] });
-    }
+        if (fc1.src === "kindle") {
+            return -comparator(fc2, fc1);
+        }
+        const prevHash1 = prevExistingHashes[fc1.hash];
+        if (prevHash1 === undefined) {
+            return -1;
+        }
+        if (prevHash1 === fc2.hash) {
+            return 1;
+        } else {
+            return kindleFcPositions[prevHash1] - kindleFcPositions[fc2.hash];
+        }
+    };
+
+    retVal.sort(comparator);
     return retVal;
 };
 

@@ -68,7 +68,6 @@ New Line 1
 hash: eee1232
 -->`;
 
-
 const markdownBookToTestMerging: Book = {
     id: "123",
     name: "test-123",
@@ -225,7 +224,94 @@ suite("BookingService Test Suite", () => {
         // assert
         expect(savedBook.flashcards.map(fc => fc.hash)).to.deep.equal(["k-3", "k-1", "u-1", "u-2"]);
     });
-    
+
+    test("saveBooks should not pick same flashcard twice", async () => {
+        // arrange
+        mockReadFiles({ "book.md": Transformers.bookToMarkdown(markdownBookToTestMerging) });
+        let savedContent = "";
+        (fs as any).writeFile = (filePath: string, content: string) => savedContent = content;
+        
+        // act
+        const fromKindle: Book = {
+            id: "123",
+            name: "test-123",
+            author: "test author",
+            photo: "test photo",
+            flashcards: [{
+                hash: "k-3",
+                content: "k 3",
+                src: "kindle",
+            }, {
+                hash: "k-2",
+                content: "k 2",
+                src: "kindle",
+            } , {
+                hash: "k-1",
+                content: "k 1",
+                src: "kindle",
+            } , {
+                hash: "k-4",
+                content: "k 4",
+                src: "kindle",
+            }],
+        };
+        
+        await BookService.saveBooks([fromKindle]);
+        const savedBook = Transformers.markdownToBook(savedContent);
+        
+        // assert
+        expect(savedBook.flashcards.map(fc => fc.hash)).to.deep.equal(["k-3", "k-2", "u-1", "u-2", "k-1", "k-4"]);
+    });
+
+    test("saveBooks should keep user's flashcard card to be relative to the next kindle one", async () => {
+        const markdownBook: Book = {
+            id: "123",
+            name: "test-123",
+            author: "test author",
+            photo: "test photo",
+            flashcards: [{
+                hash: "k-1",
+                content: "k 1",
+                src: "kindle",
+            },{
+                hash: "u-1",
+                content: "k 1",
+                src: "user",
+            }, {
+                hash: "u-2",
+                content: "u 2",
+                src: "user",
+            }, {
+                hash: "k-4",
+                content: "k 2",
+                src: "kindle",
+            }],
+        };
+        // arrange
+        mockReadFiles({ "book.md": Transformers.bookToMarkdown(markdownBook) });
+        let savedContent = "";
+        (fs as any).writeFile = (filePath: string, content: string) => savedContent = content;
+        
+        // act
+        const fromKindle: Book = {
+            id: "123",
+            name: "test-123",
+            author: "test author",
+            photo: "test photo",
+            flashcards: [{
+                hash: "k-4",
+                content: "k 4",
+                src: "kindle",
+            }],
+        };
+        
+        await BookService.saveBooks([fromKindle]);
+        const savedBook = Transformers.markdownToBook(savedContent);
+        
+        // assert
+        expect(savedBook.flashcards.map(fc => fc.hash)).to.deep.equal(["u-1", "u-2", "k-4"]);
+    });
+
     test("getFlashcardLocation returns correct location", async () => {
         // arrange
         mockReadFiles({ "book-4.md": markdown4V1 });

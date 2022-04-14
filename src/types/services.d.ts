@@ -113,3 +113,11 @@ export interface PrettierResult {
     markdownContent: string;
     status: "modified" | "no-change" | "invalid-input";
 }
+
+export interface StringNumberMap {
+    [key: string]: number;
+}
+
+export interface StringStringMap {
+    [key: string]: string;
+}
