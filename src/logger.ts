@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 
 const channel = vscode.window.createOutputChannel("Kindle Notes");
-channel.show();
 
 const log = (severity: String, ...args: any[]) => {
     if (!args || !args.length) {
