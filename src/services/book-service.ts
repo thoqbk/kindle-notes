@@ -29,19 +29,22 @@ export const getBook = async (bookId: string): Promise<Book | undefined> => {
     return data ? Transformers.markdownToBook(data) : undefined;
 };
 
-export const saveBooks = async (books: Book[]): Promise<void> => {
-    logger.info(`Saving ${books.length} books to markdown files`);
+export const saveBooks = async (fromKindle: Book[]): Promise<void> => {
+    logger.info(`Saving ${fromKindle.length} books to markdown files`);
     const markdowns = await allMarkdowns();
     const allFilePaths = markdowns.map(md => md.fullFilePath);
     const filePathByBookIds = _.fromPairs(markdowns.map(md => [md.bookId, md.fullFilePath]));
     const existingBooks = _.fromPairs(markdowns.map(md => [md.bookId, Transformers.markdownToBook(md.content)]));
-    for (const book of books) {
-        const defaultFileName = suffixFileName(Files.determineFileName(book.name), allFilePaths);
-        const filePath = filePathByBookIds[book.id] || path.join(config.getFlashcardsHomePath(), defaultFileName);
+    for (const book of fromKindle) {
         const existingBook = existingBooks[book.id];
         if (existingBook) {
-            copyUserData(existingBook, book);
+            const merged = mergeFlashcards(existingBook.flashcards, book.flashcards);
+            copyUserData(merged, existingBook.flashcards);
+            book.flashcards = merged;
         }
+
+        const defaultFileName = suffixFileName(Files.determineFileName(book.name), allFilePaths);
+        const filePath = filePathByBookIds[book.id] || path.join(config.getFlashcardsHomePath(), defaultFileName);
         await fs.writeFile(filePath, Transformers.bookToMarkdown(book), "utf8");
     }
     logger.info("Books saved");
@@ -109,18 +112,55 @@ const allMarkdowns = async (): Promise<Markdown[]> => {
 };
 
 /**
+ * Pick user flashCards in markdown and merge with kindleFlashcards to keep their relative order
+ */
+const mergeFlashcards = (markdownFlashcards: Flashcard[], kindleFlashcards: Flashcard[]): Flashcard[] => {
+    const retVal: Flashcard[] = [];
+    let markdownIdx = 0;
+    let kindleIdx = 0;
+
+    const kindleHashes = new Set(kindleFlashcards.map(fc => fc.hash));
+    while (markdownIdx < markdownFlashcards.length && kindleIdx < kindleFlashcards.length) {
+        const markdownFc = markdownFlashcards[markdownIdx];
+        if (markdownFc.src === "user") {
+            retVal.push({ ...markdownFc });
+            markdownIdx++;
+        } else if (!kindleHashes.has(markdownFc.hash)) {
+            markdownIdx++;
+        } else {
+            while (kindleIdx < kindleFlashcards.length && markdownFc.hash !== kindleFlashcards[kindleIdx].hash) {
+                retVal.push({ ...kindleFlashcards[kindleIdx++] });
+            }
+            retVal.push({ ...markdownFc });
+            markdownIdx++;
+            kindleIdx++;
+        }
+    }
+    while (markdownIdx < markdownFlashcards.length) {
+        if (markdownFlashcards[markdownIdx].src === "user") {
+            retVal.push({ ...markdownFlashcards[markdownIdx] });
+        }
+        markdownIdx++;
+    }
+    while (kindleIdx < kindleFlashcards.length) {
+        retVal.push({ ...kindleFlashcards[kindleIdx++] });
+    }
+    return retVal;
+};
+
+/**
  * Copy user-data e.g. backside, excluded
  */
-const copyUserData = (from: Book, to: Book) => {
-    const fromFlashcards: {
+const copyUserData = (merged: Flashcard[], markdown: Flashcard[]) => {
+    const existing: {
         [key: string]: Flashcard
-    } = _.fromPairs(from.flashcards.map(fc => ([fc.hash, fc])));
-    for (const fc of to.flashcards) {
-        if (fromFlashcards[fc.hash]) {
-            fc.excluded = fromFlashcards[fc.hash].excluded;
-            fc.backside = fromFlashcards[fc.hash].backside?.trim();
+    } = _.fromPairs(markdown.map(fc => ([fc.hash, fc])));
+    for (const fc of merged) {
+        if (existing[fc.hash]) {
+            fc.excluded = existing[fc.hash].excluded;
+            fc.backside = existing[fc.hash].backside?.trim();
             // Keep the old content if it is modified but not empty
-            fc.content = fromFlashcards[fc.hash].content.trim() || fc.content;
+            fc.content = existing[fc.hash].content.trim() || fc.content;
         }
     }
 };
