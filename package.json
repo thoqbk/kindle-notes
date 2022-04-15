@@ -90,7 +90,7 @@
 		"test": "node ./out/test/runTest.js",
 		"build-web": "cd web && npm run build && cd ..",
 
-		"esbuild": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify",
 		"vscode:prepublish": "rm -rf out && npm run esbuild && npm run build-web",
 		"package": "npm run test && vsce package"
 	},

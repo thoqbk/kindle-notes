@@ -37,7 +37,7 @@ const checkOrDownloadChromium = async () => {
 
 const doSyncBooks = async (progress: vscode.Progress<{ message: string }>) => {
     const credentials = await getKindleEmailAndPassword();
-    progress.report({ message: "login to Kindle" });
+    progress.report({ message: "logging into Kindle" });
     const requestForCredentials = !credentials || !(await KindleService.login(credentials[0], credentials[1]));
     if (requestForCredentials) {
         const currentKindleEmail = vscode.workspace.getConfiguration(constants.kindleNotesConfigKey).get(constants.kindleEmailConfigKey);
