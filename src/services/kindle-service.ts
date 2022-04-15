@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+import * as vscode from "vscode";
 import { Page } from "puppeteer";
 import logger from "../logger";
 import config from "../config";
@@ -42,16 +43,17 @@ export const login = async (kindleEmail: string, password: string): Promise<bool
     }
 };
 
-export const fetchBooks = async (): Promise<Book[]> => {
+export const fetchBooks = async (progress?: vscode.Progress<{ message: string }>): Promise<Book[]> => {
     const browser = await launchBrowser();
     try {
-        return await doFetchBooks(browser);
+        return await doFetchBooks(browser, progress);
     } finally {
         await browser.close();
     }
 };
 
-const doFetchBooks = async (browser: puppeteer.Browser): Promise<Book[]> => {
+const doFetchBooks = async (browser: puppeteer.Browser, progress?: vscode.Progress<{ message: string }>): Promise<Book[]> => {
+    progress?.report({ message: "fetching book list" });
     const notesPage = await ensureNotesPage(browser);
     // getting books
     const books: Book[] = await notesPage.$$eval(
@@ -74,8 +76,10 @@ const doFetchBooks = async (browser: puppeteer.Browser): Promise<Book[]> => {
         bookPhotoSelector
     );
     logger.info(`Found ${books.length} books`);
-    for (const book of books) {
-        logger.info(`Fetching notes for books ${book.name}`);
+    for (let idx = 0; idx < books.length; idx++) {
+        const book = books[idx];
+        logger.info(`Fetching notes for book ${book.name}`);
+        progress?.report({ message: `(${idx + 1} of ${books.length}) book "${book.name}"` });
         const notes = await fetchNotes(book.id, browser);
         book.flashcards = notes.map(Transformers.noteToFlashcard);
     }

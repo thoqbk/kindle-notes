@@ -15,12 +15,13 @@ const setPassword = util.promisify(keychain.setPassword).bind(keychain);
 export const syncBooks = async () => {
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: "Syncing books from Kindle",
+        title: "Syncing",
         cancellable: false,
     }, async (progress, token) => {
         try {
+            progress.report({ message: "checking Chromium status" });
             await checkOrDownloadChromium();
-            await doSyncBooks();
+            await doSyncBooks(progress);
         } catch (e) {
             logger.error("Sync failed", e);
             vscode.window.showWarningMessage("Sync failed. Please try again");
@@ -34,8 +35,9 @@ const checkOrDownloadChromium = async () => {
     logger.info("Chromium is ready to use");
 };
 
-const doSyncBooks = async () => {
+const doSyncBooks = async (progress: vscode.Progress<{ message: string }>) => {
     const credentials = await getKindleEmailAndPassword();
+    progress.report({ message: "login to Kindle" });
     const requestForCredentials = !credentials || !(await KindleService.login(credentials[0], credentials[1]));
     if (requestForCredentials) {
         const currentKindleEmail = vscode.workspace.getConfiguration(constants.kindleNotesConfigKey).get(constants.kindleEmailConfigKey);
@@ -80,7 +82,7 @@ const doSyncBooks = async () => {
         }
     }
     logger.info("Syncing books from Kindle");
-    const books = await KindleService.fetchBooks();
+    const books = await KindleService.fetchBooks(progress);
     await BookService.saveBooks(books);
     logger.info(`Sync ${books.length} book(s) successfully`);
     vscode.window.showInformationMessage(`${books.length} book(s) have been synced`);
