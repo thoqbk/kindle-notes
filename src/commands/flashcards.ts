@@ -5,7 +5,8 @@ import * as Files from "../utils/files";
 import * as path from "path";
 import { FlashcardDto, StudySession } from "../types/services";
 import logger from "../logger";
-import * as open from "open";
+
+import open = require("open");
 
 const defaultTotalFlashcards = 10;
 

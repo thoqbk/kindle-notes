@@ -1,9 +1,9 @@
 import { Buffer as Transformers } from "buffer";
 import * as yaml from "js-yaml";
-import * as md5 from "md5";
 import { Book, Flashcard, Note } from "../types/services";
 import { now } from "./times";
 
+import md5 = require("md5");
 const fm = require("front-matter");
 
 const defaultHash = "";

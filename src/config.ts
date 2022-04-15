@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import * as files from "./utils/files";
 import constants from "./constants";
 
 const extensionId = "thoqbk.kindle-notes";
@@ -8,9 +7,6 @@ const extensionPath = vscode.extensions.getExtension(extensionId)?.extensionPath
 const dataPath = path.join(extensionPath, "data");
 const browserDataPath = path.join(dataPath, "browser");
 const webPath = path.join(extensionPath, "out", "web");
-
-files.checkAndCreate(dataPath);
-files.checkAndCreate(browserDataPath);
 
 const getConfig = (key: string): any => {
     return vscode.workspace.getConfiguration(constants.kindleNotesConfigKey).get(key);
@@ -23,6 +19,7 @@ const config = {
     browserDataPath,
     isHeadless: () => !!getConfig(constants.headlessBrowserConfigKey),
     getFlashcardsHomePath: () => getConfig(constants.flashcardsHomePathConfigKey),
+    showLogger: () => getConfig(constants.showLoggerConfigKey),
     webPath,
 };
 

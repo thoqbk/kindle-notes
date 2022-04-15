@@ -5,6 +5,7 @@ import logger from "../logger";
 import * as KindleService from "../services/kindle-service";
 import * as BookService from "../services/book-service";
 import constants from "../constants";
+import { downloadBrowser } from "puppeteer/lib/cjs/puppeteer/node/install";
 
 const keychain = require("keychain");
 
@@ -18,12 +19,19 @@ export const syncBooks = async () => {
         cancellable: false,
     }, async (progress, token) => {
         try {
+            await checkOrDownloadChromium();
             await doSyncBooks();
         } catch (e) {
             logger.error("Sync failed", e);
             vscode.window.showWarningMessage("Sync failed. Please try again");
         }
     });
+};
+
+const checkOrDownloadChromium = async () => {
+    logger.info("Check or download Chromium");
+    await downloadBrowser();
+    logger.info("Chromium is ready to use");
 };
 
 const doSyncBooks = async () => {

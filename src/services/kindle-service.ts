@@ -1,11 +1,16 @@
 import * as _ from "lodash";
 import { Page } from "puppeteer";
-import * as puppeteer from "puppeteer";
 import logger from "../logger";
 import config from "../config";
 import * as Pages from "../utils/pages";
 import * as Transformers from "../utils/transformers";
 import { Book, Note } from "../types/services";
+import * as files from "../utils/files";
+
+import puppeteer = require("puppeteer");
+
+files.checkAndCreate(config.dataPath);
+files.checkAndCreate(config.browserDataPath);
 
 const notesPageUrl = "https://read.amazon.com/notebook";
 const emailSelector = "input[type='email']";
