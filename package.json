@@ -39,6 +39,10 @@
 				{
 					"command": "kindle-notes.studyThisFile",
 					"when": "editorLangId == markdown"
+				},
+				{
+					"command": "kindle-notes.syncBooks",
+					"when": "isMac"
 				}
 			]
 		},
