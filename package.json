@@ -67,12 +67,12 @@
 				"kindle-notes.headlessBrowser": {
 					"type": "boolean",
 					"default": true,
-					"description": "false to show Chromium browser while syncing books and notes from Kindle. Default is true"
+					"description": "Uncheck to show Chromium browser while syncing notes and highlights from Kindle"
 				},
 				"kindle-notes.showLogger": {
 					"type": "boolean",
 					"default": false,
-					"description": "true to popup the logger UI. False otherwise"
+					"description": "Specify whether the logger UI will popup or not"
 				},
 				"kindle-notes.kindleEmail": {
 					"type": "string",
