@@ -1,4 +1,5 @@
 import * as util from "util";
+import * as os from "os";
 import * as vscode from "vscode";
 import * as _ from "lodash";
 import logger from "../logger";
@@ -64,17 +65,7 @@ const doSyncBooks = async (progress: vscode.Progress<{ message: string }>) => {
             await vscode.workspace.getConfiguration(constants.kindleNotesConfigKey)
                 .update(constants.kindleEmailConfigKey, kindleEmail, vscode.ConfigurationTarget.Global);
             logger.info("KindleEmail was saved");
-            try {
-                await setPassword({
-                    account: constants.accountNameInKeyChain,
-                    service: constants.serviceInKeyChain,
-                    type: constants.typeInKeyChain,
-                    password,
-                });
-                logger.info("Password was saved in KeyChain");
-            } catch (e) {
-                logger.error(`Cannot save password to KeyChain`, e);
-            }
+            await checkAndSavePassword(password);
         } else {
             logger.info("Incorrect email or password");
             vscode.window.showInformationMessage("Stop syncing because email or password is incorrect");
@@ -107,6 +98,9 @@ const getKindleEmailAndPassword = async (): Promise<[string, string] | null> => 
         return null;
     }
     let password: string = "";
+    if (isWin()) {
+        return null;
+    }
     try {
         password = await getPassword({
             account: constants.accountNameInKeyChain,
@@ -121,3 +115,22 @@ const getKindleEmailAndPassword = async (): Promise<[string, string] | null> => 
     }
     return [kindleEmail as string, password];
 };
+
+const checkAndSavePassword = async (password: string) => {
+    if (isWin()) {
+        return;
+    }
+    try {
+        await setPassword({
+            account: constants.accountNameInKeyChain,
+            service: constants.serviceInKeyChain,
+            type: constants.typeInKeyChain,
+            password,
+        });
+        logger.info("Password was saved in KeyChain");
+    } catch (e) {
+        logger.error(`Cannot save password to KeyChain`, e);
+    }
+};
+
+const isWin = () => os.platform() === "win32";

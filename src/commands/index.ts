@@ -62,7 +62,7 @@ const runCommand = async (command: string, context: vscode.ExtensionContext, fn:
     if (!value || value.length === 0) {
         return;
     }
-    const dirPath = value[0].path;
+    const dirPath = Files.checkAndFixWinSelectedPath(value[0].path);
     if (!Files.exists(dirPath)) {
         vscode.window.showErrorMessage(`Invalid flashcards directory ${dirPath}`);
         return;
