@@ -1,13 +1,14 @@
 {
 	"name": "kindle-notes",
 	"displayName": "Kindle Notes",
-	"description": "Flashcards from markdown and your notes on Kindle",
+	"description": "Create flashcards with Spaced Repetition from your notes. Syncing notes and highlights from your Kindle",
 	"version": "0.0.1",
 	"publisher": "thoqbk",
 	"keywords": [
-		"flashcard",
+		"flashcards",
 		"markdown",
-		"kindle"
+		"kindle",
+		"flashcard"
 	],
 	"author": {
 		"email": "thoqbk@gmail.com",

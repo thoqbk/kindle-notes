@@ -29,11 +29,11 @@ I use this extension daily for my `long-term memory`. Hope it helps you as well!
 
 - create `flashcards` in `markdown` format
 
-![](docs/create-flashcard.gif)
+![](https://raw.githubusercontent.com/thoqbk/kindle-notes/main/docs/create-flashcard.gif)
 
 - sync notes and highlights from your `Kindle`
 
-![](docs/sync-w-kindle.gif)
+![](https://raw.githubusercontent.com/thoqbk/kindle-notes/main/docs/sync-w-kindle.gif)
 
 ## Commands
 
