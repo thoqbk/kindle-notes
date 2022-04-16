@@ -167,7 +167,7 @@ const pickFlashcards = (book: Book, totalFlashcards: number): Flashcard[] => {
     const sm2 = _.fromPairs(db.sm2.filter(v => v.bookId === book.id).map(v => [v.hash, v]));
     const includedFlashcards = book.flashcards.filter(fc => !fc.excluded);
     let validFlashcards = includedFlashcards.filter(fc => validAge(sm2[fc.hash]));
-    if (!validFlashcards.length) { // if not validAge flaschards, try to filter by `excluded` only
+    if (!validFlashcards.length) { // if not validAge flashcards, try to filter by `excluded` only
         validFlashcards = includedFlashcards;
     }
     if (validFlashcards.length <= totalFlashcards) {

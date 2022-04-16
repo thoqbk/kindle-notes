@@ -11,7 +11,7 @@ I use this extension daily for my `long-term memory`. Hope it helps you as well!
 
 ## Feature highlights
 
-- create `flaschards` in `markdown` format
+- create `flashcards` in `markdown` format
 - sync notes and highlights from your `Kindle`
 - `Spaced Repetition` to revise `flashcards`
 - auto format and generate metadata for books and flashcards
@@ -39,7 +39,7 @@ I use this extension daily for my `long-term memory`. Hope it helps you as well!
 
 - `Kindle Notes: Study`: study flashcards from a random books
 - `Kindle Notes: Study This File`: study flashcards from the current `markdown` book
-- `Kindle Notes: Sync Books`: to sync books from your Kindle. Notice that, the extension with ask you for `email` and `password` to login to `Kindle`. The `pasword` will be kept on your local only.
+- `Kindle Notes: Sync Books`: to sync books from your Kindle. Notice that, the extension will ask you for `email` and `password` to login to `Kindle`. The credentials will be kept locally on your machine only.
 
 ## Format
 
