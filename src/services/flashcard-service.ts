@@ -12,7 +12,7 @@ const msADay = 24 * 60 * 60 * 1000;
 export const newStudySession = async (request: NewStudySessionRequest): Promise<StudySession> => {
     let book = request.bookId ? await BookService.getBook(request.bookId) : await pickBook();
     if (!book) {
-        throw new Error(`Book not found ${request.bookId}`);
+        throw new Error(`Create 1 book before start`);
     }
     const scheduled = pickFlashcards(book, request.totalFlashcards).map(fc => fc.hash);
     if (!scheduled.length) {

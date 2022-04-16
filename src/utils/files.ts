@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as os from "os";
 import { readdir as readdirAsync } from "fs/promises";
 import * as path from "path";
 import config from "../config";
@@ -50,6 +51,19 @@ export const determineFileName = (bookName: string): string => {
         rawName = dashSplits[0];
     }
     return rawNameToFileName(rawName);
+};
+
+/**
+ * On Windows, selected directory path from `vscode.window.showOpenDialog`
+ * return incorrect path e.g. `/C:/a/b/c` instead of `C:\a\b\c`.
+ * 
+ * This function is to check and fix that
+ */
+export const checkAndFixWinSelectedPath = (selectedPath: string): string => {
+    if (os.platform() !== "win32") {
+        return selectedPath;
+    }
+    return selectedPath.split(/[\/\\]/).filter(i => i).join("\\");
 };
 
 const rawNameToFileName = (rawName: string): string => {

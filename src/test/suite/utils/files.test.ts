@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import * as os from "os";
 import * as Files from "../../../utils/files";
 
 suite("Transformers Util Test Suite", () => {
@@ -29,5 +30,14 @@ suite("Transformers Util Test Suite", () => {
     test("determineFileName returns full name if delimiter not found", () => {
         expect(Files.determineFileName("Abc dad 12312 3ddew 323d vvasd 23123 ddd-bb"))
             .to.equal("abc-dad-12312-3ddew-323d-vvasd-23123-ddd-bb.md");
+    });
+
+    test("checkAndFixWinSelectedPath return fixed filePath if is Windows OS", () => {
+        // arrange
+        (os as any).platform = () => "win32";
+
+        // act & assert
+        expect(Files.checkAndFixWinSelectedPath("/C:/a/b/c")).eq("C:\\a\\b\\c");
+        expect(Files.checkAndFixWinSelectedPath("\\C:\\a\\b\\c")).eq("C:\\a\\b\\c");
     });
 });
