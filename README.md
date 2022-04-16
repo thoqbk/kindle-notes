@@ -19,7 +19,7 @@ I use this extension daily for my `long-term memory`. Hope it helps you as well!
 
 ## Get started
 
-- create empty `flashcards` directory and open it with `VS Code`
+- create an empty `flashcards` directory and open it with `VS Code`
 - run command `Kindle Notes: Study` and browse to the `flashcards` directory
 - add a book file (e.g. `database.md`), add some flashcards and run `Kindle Notes: Study This File` to revise
 - run `Kindle Notes: Sync Books`, enter `email`, `password` to sync books with your Kindle
@@ -72,7 +72,7 @@ Next flashcard
 
 | Name | Description | Default Value |
 | ---- | ----------- | ------------- |
-| Kindle notes: Flashcards Home Path | Path to the flashcards repo directory. Will be asked at the fisrt time you use the extension | |
+| Kindle notes: Flashcards Home Path | Path to the flashcards repo directory. Will be asked the first time you use the extension | |
 | Kindle-notes: Headless Browser | `true` to show Chromium browser while syncing notes and highlights from Kindle | `false` |
 | Kindle-notes: Show Logger | Specify whether the logger UI will popup or not | `false` |
-| Kindle-notes: Kindle Email | Email using to login to Kindle. Will be asked at the first time you use the `Sync Books` command | |
+| Kindle-notes: Kindle Email | Email using to login to Kindle. Will be asked the first time you use the `Sync Books` command | |
