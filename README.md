@@ -12,8 +12,9 @@ I use this extension daily for my `long-term memory`. Hope it helps you as well!
 ## Preview
 
 - create `flashcards` in `markdown` format
+![](docs/create-flashcard.gif)
 - sync notes and highlights from your `Kindle`
-- revise `flashcards`
+![](docs/sync-w-kindle.gif)
 
 ## Commands
 
