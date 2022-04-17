@@ -224,6 +224,7 @@ const updateSm2 = async (session: StudySession, hash: string, grade: number) => 
     db.sm2.push({
         ...currentSm2,
         ...result,
+        lastGrade: grade,
         lastReview: now(),
     });
 };
