@@ -12,6 +12,11 @@ const getConfig = (key: string): any => {
     return vscode.workspace.getConfiguration(constants.kindleNotesConfigKey).get(key);
 };
 
+const updateConfig = async (key: string, value: string) => {
+    const settings = vscode.workspace.getConfiguration(constants.kindleNotesConfigKey);
+    await settings.update(key, value, vscode.ConfigurationTarget.Global);
+};
+
 const config = {
     extensionId,
     extensionPath,
@@ -21,6 +26,8 @@ const config = {
     getFlashcardsHomePath: () => getConfig(constants.flashcardsHomePathConfigKey),
     showLogger: () => getConfig(constants.showLoggerConfigKey),
     webPath,
+    getConfig,
+    updateConfig,
 };
 
 export default config;

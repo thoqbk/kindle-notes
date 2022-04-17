@@ -4,8 +4,9 @@ import { readdir as readdirAsync } from "fs/promises";
 import * as path from "path";
 import config from "../config";
 import logger from "../logger";
+import constants from "../constants";
 
-export const checkAndCreate = (dirPath: string) => {
+export const checkOrCreate = (dirPath: string) => {
     if (!exists(dirPath)) {
         logger.info(`Creating dir ${dirPath}`);
         fs.mkdirSync(dirPath);
@@ -64,6 +65,21 @@ export const checkAndFixWinSelectedPath = (selectedPath: string): string => {
         return selectedPath;
     }
     return selectedPath.split(/[\/\\]/).filter(i => i).join("\\");
+};
+
+/**
+ * Create `flashcards` dir, update config if not exists
+ * 
+ * @returns full path to flashcards dir
+ */
+export const getOrCreateFlashcardsDir = async (): Promise<string> => {
+    if (config.getFlashcardsHomePath()) {
+        return config.getFlashcardsHomePath();
+    }
+    const retVal = path.join(os.homedir(), "flashcards");
+    checkOrCreate(retVal);
+    await config.updateConfig(constants.flashcardsHomePathConfigKey, retVal);
+    return retVal;
 };
 
 const rawNameToFileName = (rawName: string): string => {

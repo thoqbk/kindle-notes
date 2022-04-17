@@ -10,8 +10,8 @@ import * as files from "../utils/files";
 
 import puppeteer = require("puppeteer");
 
-files.checkAndCreate(config.dataPath);
-files.checkAndCreate(config.browserDataPath);
+files.checkOrCreate(config.dataPath);
+files.checkOrCreate(config.browserDataPath);
 
 const notesPageUrl = "https://read.amazon.com/notebook";
 const emailSelector = "input[type='email']";

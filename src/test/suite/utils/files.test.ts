@@ -1,6 +1,9 @@
 import { expect } from "chai";
+import * as path from "path";
 import * as os from "os";
+import config from "../../../config";
 import * as Files from "../../../utils/files";
+import constants from "../../../constants";
 
 suite("Transformers Util Test Suite", () => {
     test("determineFileName should return short name if found `:`", () => {
@@ -39,5 +42,36 @@ suite("Transformers Util Test Suite", () => {
         // act & assert
         expect(Files.checkAndFixWinSelectedPath("/C:/a/b/c")).eq("C:\\a\\b\\c");
         expect(Files.checkAndFixWinSelectedPath("\\C:\\a\\b\\c")).eq("C:\\a\\b\\c");
+    });
+
+    test("getOrCreateFlashcardsDir returns value from config if exists", async () => {
+        // arrange
+        config.getFlashcardsHomePath = () => "test";
+
+        // act & assert
+        expect(await Files.getOrCreateFlashcardsDir()).eq("test");
+    });
+
+    test("getOrCreateFlashcardsDir creates flashcards dir if not exists", async () => {
+        // arrange
+        const flashcardsDir = path.join(os.homedir(), "flashcards");
+        config.getFlashcardsHomePath = () => "";
+        let configKeyUpdated = "";
+        let configValueUpdated = "";
+        (config as any).updateConfig = (key: string, value: string) => {
+            configKeyUpdated = key;
+            configValueUpdated = value;
+        };
+        (Files as any).exists = () => false;
+        let checkOrCreateCalled = false;
+        (Files as any).checkOrCreate = () => {
+            checkOrCreateCalled = true;
+        };
+
+        // act & assert
+        expect(await Files.getOrCreateFlashcardsDir()).eq(flashcardsDir);
+        expect(checkOrCreateCalled).is.true;
+        expect(configKeyUpdated).to.eq(constants.flashcardsHomePathConfigKey);
+        expect(configValueUpdated).to.eq(flashcardsDir);
     });
 });
