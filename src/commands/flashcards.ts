@@ -7,6 +7,7 @@ import { FlashcardDto, StudySession } from "../types/services";
 import logger from "../logger";
 
 import open = require("open");
+import config from "../config";
 
 const defaultTotalFlashcards = 10;
 
@@ -57,8 +58,9 @@ export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: 
 };
 
 const getHtmlForWebView = async (webview: vscode.Webview, context: vscode.ExtensionContext): Promise<string> => {
-    const cssFileNames = await Files.getFileNames(path.join("out", "web", "static", "css"), ".css");
-    const jsFileNames = await Files.getFileNames(path.join("out", "web", "static", "js"), ".js");
+    const staticFolder = path.join(config.extensionPath, "out", "web", "static");
+    const cssFileNames = await Files.getFileNames(path.join(staticFolder, "css"), ".css");
+    const jsFileNames = await Files.getFileNames(path.join(staticFolder, "js"), ".js");
     if (!cssFileNames.length || !jsFileNames.length) {
         return "content not found";
     }

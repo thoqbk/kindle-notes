@@ -22,12 +22,12 @@ export const exists = (filePath: string) => {
 
 /**
  * 
- * @param folderPath relative folderPath e.g. `out/web`
+ * @param folderPath absolute path
  * @param extension e.g. `.js`
  * @returns file names with extension e.g. ["hello.md", "vietnam.md"]
  */
 export const getFileNames = async (folderPath: string, extension?: string): Promise<string[]> => {
-    const fileNames = await readdirAsync(path.join(config.extensionPath, folderPath));
+    const fileNames = await readdirAsync(folderPath);
     return fileNames.filter(fn => !extension || path.extname(fn) === extension);
 };
 
