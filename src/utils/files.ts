@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as fsAsync from "fs/promises";
 import * as os from "os";
 import { readdir as readdirAsync } from "fs/promises";
 import * as path from "path";
@@ -79,7 +80,26 @@ export const getOrCreateFlashcardsDir = async (): Promise<string> => {
     const retVal = path.join(os.homedir(), "flashcards");
     checkOrCreate(retVal);
     await config.updateConfig(constants.flashcardsHomePathConfigKey, retVal);
+    const flashcardFiles = await getFileNames(retVal, ".md");
+    if (flashcardFiles.length) {
+        return retVal;
+    }
+    logger.info("Copying sample books from demo folder");
+    const demoFolder = path.join(config.extensionPath, "demo");
+    const demoBooks = await getFileNames(demoFolder, ".md");
+    for (let demoBook of demoBooks) {
+        const src = path.join(demoFolder, demoBook);
+        const dest = path.join(retVal, demoBook);
+        logger.info(`Copying ${src} to ${dest}`);
+        await fsAsync.copyFile(src, dest);
+        logger.info("File copied");
+    }
+    logger.info(`Copied ${demoBooks.length} sample book(s)`);
     return retVal;
+};
+
+export const writeFile = async (filePath: string, content: string) => {
+    await fsAsync.writeFile(filePath, content, "utf8");
 };
 
 const rawNameToFileName = (rawName: string): string => {

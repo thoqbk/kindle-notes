@@ -43,7 +43,7 @@ export const saveBooks = async (fromKindle: Book[]): Promise<void> => {
 
         const defaultFileName = suffixFileName(Files.determineFileName(book.name), allFilePaths);
         const filePath = filePathByBookIds[book.id] || path.join(config.getFlashcardsHomePath(), defaultFileName);
-        await fs.writeFile(filePath, Transformers.bookToMarkdown(book), "utf8");
+        await Files.writeFile(filePath, Transformers.bookToMarkdown(book));
     }
     logger.info("Books saved");
 };

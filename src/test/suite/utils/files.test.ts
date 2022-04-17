@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import * as path from "path";
 import * as os from "os";
+import * as fsAsync from "fs/promises";
 import config from "../../../config";
 import * as Files from "../../../utils/files";
 import constants from "../../../constants";
@@ -52,7 +53,7 @@ suite("Transformers Util Test Suite", () => {
         expect(await Files.getOrCreateFlashcardsDir()).eq("test");
     });
 
-    test("getOrCreateFlashcardsDir creates flashcards dir if not exists", async () => {
+    test("getOrCreateFlashcardsDir creates flashcards dir if not exist", async () => {
         // arrange
         const flashcardsDir = path.join(os.homedir(), "flashcards");
         config.getFlashcardsHomePath = () => "";
@@ -73,5 +74,34 @@ suite("Transformers Util Test Suite", () => {
         expect(checkOrCreateCalled).is.true;
         expect(configKeyUpdated).to.eq(constants.flashcardsHomePathConfigKey);
         expect(configValueUpdated).to.eq(flashcardsDir);
+    });
+
+    test("getOrCreateFlashcardsDir copies demo books if folder not exist", async () => {
+        // arrange
+        const flashcardsDir = path.join(os.homedir(), "flashcards");
+        config.getFlashcardsHomePath = () => "";
+        (config as any).updateConfig = () => {};
+        (Files as any).exists = () => false;
+        (Files as any).checkOrCreate = () => {};
+        (Files as any).getFileNames = (folderPath: string, extension: string) => {
+            if (folderPath.indexOf("demo") >= 0) {
+                return ["hello.md"];
+            } else {
+                return [];
+            }
+        };
+        let copySrc = "";
+        let copyDest = "";
+        (fsAsync as any).copyFile = (src: string, dest: string) => {
+            copySrc = src;
+            copyDest = dest;
+        };
+
+        // act
+        await Files.getOrCreateFlashcardsDir();
+
+        // assert
+        expect(copySrc).contains(path.join("demo", "hello.md"));
+        expect(copyDest).to.equal(path.join(flashcardsDir, "hello.md"));
     });
 });
