@@ -41,6 +41,8 @@ const prettier = (markdownContent: string): PrettierResult => {
 
 export const shouldHandleOnWillSaveTextDocument = (event: vscode.TextDocumentWillSaveEvent): boolean => {
     const parsed = path.parse(event.document.uri.fsPath);
+    // due to performance issue,
+    // we don't need to use safe throwOrGetFlashcardsHomePath here
     const flashcardHomePath = config.getFlashcardsHomePath();
     return event.reason === vscode.TextDocumentSaveReason.Manual
         && flashcardHomePath

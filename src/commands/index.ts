@@ -27,7 +27,7 @@ export const registerCommands = (context: vscode.ExtensionContext) => {
             if (book.id) {
                 await openFlashcards(context, book.id);
             } else {
-                vscode.window.showErrorMessage("The current file is not a valid KindleNotes book");
+                vscode.window.showInformationMessage("The current file is not a valid KindleNotes book");
                 logger.error(`Invalid markdown content: ${markdown}`);
             }
         });
@@ -45,7 +45,7 @@ type RunCommandFn = () => Promise<any>;
 
 const runCommand = async (command: string, context: vscode.ExtensionContext, fn: RunCommandFn) => {
     logger.info(`Running command ${command}`);
-    const flashcardsHomePath = config.getFlashcardsHomePath();
+    const flashcardsHomePath = await Files.getOrCreateFlashcardsDir();
     if (Files.exists(flashcardsHomePath)) {
         return fn();
     }
@@ -64,7 +64,7 @@ const runCommand = async (command: string, context: vscode.ExtensionContext, fn:
     }
     const dirPath = Files.checkAndFixWinSelectedPath(value[0].path);
     if (!Files.exists(dirPath)) {
-        vscode.window.showErrorMessage(`Invalid flashcards directory ${dirPath}`);
+        vscode.window.showInformationMessage(`Invalid flashcards directory ${dirPath}`);
         return;
     }
     const settings = vscode.workspace.getConfiguration(kindleNotesKey);

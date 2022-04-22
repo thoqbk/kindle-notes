@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import * as vscode from "vscode";
 import * as path from "path";
 import constants from "./constants";
@@ -17,13 +18,29 @@ const updateConfig = async (key: string, value: string) => {
     await settings.update(key, value, vscode.ConfigurationTarget.Global);
 };
 
+const getFlashcardsHomePath = () => getConfig(constants.flashcardsHomePathConfigKey);
+
+/**
+ * show alert and throw exception if invalid or not exist
+ */
+const throwOrGetFlashcardsHomePath = () => {
+    const retVal = getFlashcardsHomePath();
+    const message = `Please goto settings and set "Kindle-notes: Flashcards Home Path" to a valid path`;
+    if (!retVal || !fs.existsSync(retVal)) {
+        vscode.window.showInformationMessage(message);
+        throw new Error(message);
+    }
+    return retVal;
+};
+
 const config = {
     extensionId,
     extensionPath,
     dataPath,
     browserDataPath,
     isHeadless: () => !!getConfig(constants.headlessBrowserConfigKey),
-    getFlashcardsHomePath: () => getConfig(constants.flashcardsHomePathConfigKey),
+    getFlashcardsHomePath, // null if not exist
+    throwOrGetFlashcardsHomePath,
     showLogger: () => getConfig(constants.showLoggerConfigKey),
     webPath,
     getConfig,

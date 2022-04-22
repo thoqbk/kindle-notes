@@ -3,6 +3,7 @@ import { expect } from "chai";
 import * as BookService from "../../../services/book-service";
 import * as Transformers from "../../../utils/transformers";
 import { Book } from "../../../types/services";
+import config from "../../../config";
 
 const markdown1 = `---
 id: 123
@@ -95,6 +96,8 @@ const markdownBookToTestMerging: Book = {
         src: "kindle",
     }],
 };
+
+(config as any).throwOrGetFlashcardsHomePath = () => "test";
 
 suite("BookingService Test Suite", () => {
     test("saveBooks should append number to the file name if already exists", async () => {

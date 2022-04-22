@@ -33,6 +33,7 @@ export const saveBooks = async (fromKindle: Book[]): Promise<void> => {
     const allFilePaths = markdowns.map(md => md.fullFilePath);
     const filePathByBookIds = _.fromPairs(markdowns.map(md => [md.bookId, md.fullFilePath]));
     const existingBooks = _.fromPairs(markdowns.map(md => [md.bookId, Transformers.markdownToBook(md.content)]));
+    const flashcardsHomePath = config.throwOrGetFlashcardsHomePath();
     for (const book of fromKindle) {
         const existingBook = existingBooks[book.id];
         if (existingBook) {
@@ -41,8 +42,8 @@ export const saveBooks = async (fromKindle: Book[]): Promise<void> => {
             book.flashcards = merged;
         }
 
-        const defaultFileName = suffixFileName(Files.determineFileName(book.name), allFilePaths);
-        const filePath = filePathByBookIds[book.id] || path.join(config.getFlashcardsHomePath(), defaultFileName);
+        const defaultFileName = suffixFileName(flashcardsHomePath, Files.determineFileName(book.name), allFilePaths);
+        const filePath = filePathByBookIds[book.id] || path.join(flashcardsHomePath, defaultFileName);
         await Files.writeFile(filePath, Transformers.bookToMarkdown(book));
     }
     logger.info("Books saved");
@@ -89,12 +90,13 @@ export const getFlashcardLocation = async (bookId: string, flashcardHash: string
 const allMarkdowns = async (): Promise<Markdown[]> => {
     const retVal: Markdown[] = [];
     logger.info("Getting all markdowns file");
-    const fileNames = await fs.readdir(config.getFlashcardsHomePath());
+    const flashcardHomePath = config.throwOrGetFlashcardsHomePath();
+    const fileNames = await fs.readdir(flashcardHomePath);
     const markdownFiles = fileNames.filter(fileName => path.extname(fileName) === ".md");
     logger.info(`Found ${markdownFiles.length} markdown files`);
 
     for (const markdownFile of markdownFiles) {
-        const fullFilePath = path.join(config.getFlashcardsHomePath(), markdownFile);
+        const fullFilePath = path.join(flashcardHomePath, markdownFile);
         const data = await fs.readFile(fullFilePath, "utf8");
         const content = fm(data);
         const attributes = content.attributes as any;
@@ -175,10 +177,10 @@ const copyUserData = (merged: Flashcard[], markdown: Flashcard[]) => {
     }
 };
 
-const suffixFileName = (originalFileName: string, allFilePaths: string[]): string => {
+const suffixFileName = (flashcardsHomePath: string, originalFileName: string, allFilePaths: string[]): string => {
     let retVal = originalFileName;
     for (let suffix = 2; suffix < 10; suffix++) {
-        const filePath = path.join(config.getFlashcardsHomePath(), retVal);
+        const filePath = path.join(flashcardsHomePath, retVal);
         if (allFilePaths.indexOf(filePath) >= 0) {
             retVal = `${path.parse(originalFileName).name}-${suffix}.md`;
         } else {

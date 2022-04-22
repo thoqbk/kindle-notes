@@ -37,7 +37,7 @@ export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: 
         });
     } catch (e) {
         logger.error(`Cannot create new session for the book ${bookId}`);
-        vscode.window.showErrorMessage(`${(e as Error).message}`);
+        vscode.window.showInformationMessage(`${(e as Error).message}`);
         return;
     }
 
