@@ -1,8 +1,8 @@
 {
 	"name": "kindle-notes",
 	"displayName": "Kindle Notes",
-	"description": "Create flashcards with Spaced Repetition from your notes. Syncing notes and highlights from your Kindle",
-	"version": "0.0.3",
+	"description": "Simple flashcards extension. Ability to sync with your Kindle",
+	"version": "0.0.4",
 	"publisher": "thoqbk",
 	"keywords": [
 		"flashcards",

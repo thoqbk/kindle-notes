@@ -1,6 +1,6 @@
 # Kindle Notes
 
-Create `flashcards` with Spaced Repetition from your notes. Syncing notes and highlights from your `Kindle`.
+Simple `flashcards` extension. Ability to sync with your `Kindle`.
 
 You learn many interesting things every day by researching or reading books but easily forget if do not revise after some time. This extension allows you to:
 - create `flashcards` in `markdown` format
@@ -19,9 +19,9 @@ I use this extension daily for my `long-term memory`. Hope it helps you as well!
 
 ## Get started
 
-- run command `Kindle Notes: Open Flashcards Repo` and view book files in your repo
+- run command `Kindle Notes: Open Flashcards Repo` to view books in your repo
 - run command `Kindle Notes: Study` to revise a random book
-- run `Kindle Notes: Sync Books`, enter `email` and `password` to sync with your Kindle
+- (optional) run `Kindle Notes: Sync Books`, enter `email` and `password` to sync with your Kindle
 - (optional) commit and push to `Github`
 
 ## Preview
