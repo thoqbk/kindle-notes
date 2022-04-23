@@ -4,19 +4,20 @@ import logger from "../logger";
 import { now } from "../utils/times";
 import db from "../db";
 import sm2 from "../utils/sm2";
-import { Book, Flashcard, FlashcardDto, NewStudySessionRequest, SaveResultRequest, StudySession, FlashcardSm2, DbData } from "../types/services";
+import { Book, Flashcard, FlashcardDto, NewStudySessionRequest, SaveResultRequest, StudySession, FlashcardSm2, DbData, StringNumberMap } from "../types/services";
 import * as BookService from "./book-service";
 
 const msADay = 24 * 60 * 60 * 1000;
 
 export const newStudySession = async (request: NewStudySessionRequest): Promise<StudySession> => {
+    const noFlashcard = "There is no card to study for now";
     let book = request.bookId ? await BookService.getBook(request.bookId) : await pickBook();
     if (!book) {
-        throw new Error(`Create 1 book before start`);
+        throw new Error(noFlashcard);
     }
     const scheduled = (await pickFlashcards(book, request.totalFlashcards)).map(fc => fc.hash);
     if (!scheduled.length) {
-        throw new Error(`No flashcards available for this book`);
+        throw new Error(noFlashcard);
     }
     const retVal: StudySession = {
         id: uuid(),
@@ -140,19 +141,7 @@ export const getSession = async (id: string): Promise<StudySession | undefined> 
 
 const pickBook = async (): Promise<Book | undefined> => {
     const books = await BookService.allBooks();
-    const dbData = await db.load();
-    const sm2 = _.fromPairs(dbData.sm2.map(v => [flashcardKey(v.bookId, v.hash), v]));
-    const validFlashcards: {
-        [key: string]: number;
-    } = {};
-    let totalFlashcards = 0;
-    for (const book of books) {
-        validFlashcards[book.id] = book.flashcards.filter(fc => {
-            const key = flashcardKey(book.id, fc.hash);
-            return !fc.excluded && validAge(sm2[key]);
-        }).length;
-        totalFlashcards += validFlashcards[book.id];
-    }
+    const [validFlashcards, totalFlashcards] = await bookStats(books);
     if (totalFlashcards === 0) {
         return undefined;
     }
@@ -239,3 +228,24 @@ const updateSm2 = (dbData: DbData, session: StudySession, hash: string, grade: n
 const flashcardKey = (bookId: string, hash: string) => `${bookId}++${hash}`;
 
 const validAge = (sm2: FlashcardSm2 | undefined) => !sm2 || (now() - sm2.lastReview >= sm2.interval * msADay);
+
+const bookStats = async (books: Book[]): Promise<[StringNumberMap, number]> => {
+    const dbData = await db.load();
+    const sm2 = _.fromPairs(dbData.sm2.map(v => [flashcardKey(v.bookId, v.hash), v]));
+    const validFlashcards: StringNumberMap = {};
+    const includedFlashcards: StringNumberMap = {};
+    let totalValidFlashcards = 0;
+    let totalIncludedFlashcards = 0;
+    for (const book of books) {
+        const included = book.flashcards.filter(fc => !fc.excluded);
+        includedFlashcards[book.id] = included.length;
+        totalIncludedFlashcards += included.length;
+        
+        validFlashcards[book.id] = included.filter(fc => {
+            const key = flashcardKey(book.id, fc.hash);
+            return validAge(sm2[key]);
+        }).length;
+        totalValidFlashcards += validFlashcards[book.id];
+    }
+    return totalValidFlashcards === 0 ? [includedFlashcards, totalIncludedFlashcards] : [validFlashcards, totalValidFlashcards];
+};

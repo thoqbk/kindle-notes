@@ -38,6 +38,19 @@ hash: fc3
 -->
 `);
 
+const book2 = Transformers.markdownToBook(`---
+id: 888
+name: "test book 888"
+---
+
+##
+Hello 888
+
+<!--
+hash: fc888
+-->
+`);
+
 suite("FlashcardService Test Suite", () => {
     test("newStudySession should return scheduled flashcards with considering of sm2.interval", async () => {
         // arrange
@@ -123,6 +136,54 @@ suite("FlashcardService Test Suite", () => {
         expect(result).to.deep.contain({
             scheduled: ["fc1", "fc2", "fc3"]
         });
+    });
+
+    test("newStudySession should be able to pick book even no validAge card", async () => {
+        // arrange
+        (BookService as any).allBooks = () => ([book1, book2]);
+        (Times as any).now = () => 0;
+        mockReadDbFile({
+            sessions: [],
+            sm2: [{
+                    hash: "fc3",
+                    bookId: "123",
+                    easinessFactor: 3,
+                    repetitionNumber: 1.2,
+                    interval: 1,
+                    lastReview: 0,
+                    lastGrade: 1,
+                }, {
+                    hash: "fc1",
+                    bookId: "123",
+                    easinessFactor: 2,
+                    repetitionNumber: 4.2,
+                    interval: 1,
+                    lastReview: 0,
+                    lastGrade: 2,
+                }, {
+                    hash: "fc2",
+                    bookId: "123",
+                    easinessFactor: 2,
+                    repetitionNumber: 4.2,
+                    interval: 1,
+                    lastReview: 0,
+                    lastGrade: 3,
+                }, {
+                    hash: "fc888",
+                    bookId: "888",
+                    easinessFactor: 2,
+                    repetitionNumber: 4.2,
+                    interval: 1,
+                    lastReview: 0,
+                    lastGrade: 3,
+            }]
+        });
+
+        // act
+        const result = await FlashcardService.newStudySession({ totalFlashcards: 3 });
+
+        // assert
+        expect(result.scheduled.length).to.equal(3);
     });
 
     test("nextFlashcard should pick flashcard from scheduled if needToReview is not full", async () => {
