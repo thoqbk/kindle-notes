@@ -58,6 +58,10 @@ export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: 
     currentPanel.onDidDispose(onDidDispose, null, context.subscriptions);
 };
 
+export const openFlashcardsRepo = async () => {
+    await vscode.commands.executeCommand("vscode.openFolder", vscode.Uri.file(config.throwOrGetFlashcardsHomePath()));
+};
+
 const getHtmlForWebView = async (webview: vscode.Webview, context: vscode.ExtensionContext): Promise<string> => {
     const staticFolder = path.join(config.extensionPath, "out", "web", "static");
     const cssFileNames = await Files.getFileNames(path.join(staticFolder, "css"), ".css");

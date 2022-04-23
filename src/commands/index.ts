@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import logger from "../logger";
-import { openFlashcards } from "./flashcards";
+import { openFlashcards, openFlashcardsRepo } from "./flashcards";
 import * as Transformers from "../utils/transformers";
 import { syncBooks } from "./books";
 import * as Files from "../utils/files";
@@ -11,6 +11,7 @@ import { now } from "../utils/times";
 const studyCommand = "kindle-notes.study";
 const studyThisFileCommand = "kindle-notes.studyThisFile";
 const syncBooksCommand = "kindle-notes.syncBooks";
+const openFlashcardsRepoCommand = "kindle-notes.openFlashcardsRepo";
 
 const kindleNotesKey = "kindle-notes";
 const flashcardsHomePathKey = "flashcardsHomePath";
@@ -35,6 +36,11 @@ export const registerCommands = (context: vscode.ExtensionContext) => {
     context.subscriptions.push(vscode.commands.registerCommand(syncBooksCommand, () => {
         runCommand(syncBooksCommand, context, async () => {
             await syncBooks();
+        });
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand(openFlashcardsRepoCommand, () => {
+        runCommand(openFlashcardsRepoCommand, context, async () => {
+            await openFlashcardsRepo();
         });
     }));
     context.subscriptions.push(vscode.workspace.onWillSaveTextDocument(handleOnWillSaveTextDocument));

@@ -19,11 +19,10 @@ I use this extension daily for my `long-term memory`. Hope it helps you as well!
 
 ## Get started
 
-- create an empty `flashcards` directory and open it with `VS Code`
-- run command `Kindle Notes: Study` and browse to the `flashcards` directory
-- add a book file (e.g. `database.md`), add some flashcards and run `Kindle Notes: Study This File` to revise
-- run `Kindle Notes: Sync Books`, enter `email`, `password` to sync books with your Kindle
-- (optional) commit and push to Github
+- run command `Kindle Notes: Open Flashcards Repo` and view book files in your repo
+- run command `Kindle Notes: Study` to revise a random book
+- run `Kindle Notes: Sync Books`, enter `email` and `password` to sync with your Kindle
+- (optional) commit and push to `Github`
 
 ## Preview
 

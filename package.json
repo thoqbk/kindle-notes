@@ -30,6 +30,7 @@
 		"onCommand:kindle-notes.study",
 		"onCommand:kindle-notes.studyThisFile",
 		"onCommand:kindle-notes.syncBooks",
+		"onCommand:kindle-notes.openFlashcardsRepo",
 		"onLanguage:markdown"
 	],
 	"main": "./out/extension.js",
@@ -54,6 +55,10 @@
 			{
 				"command": "kindle-notes.syncBooks",
 				"title": "Kindle Notes: Sync Books"
+			},
+			{
+				"command": "kindle-notes.openFlashcardsRepo",
+				"title": "Kindle Notes: Open Flashcards Repo"
 			}
 		],
 		"configuration": {
