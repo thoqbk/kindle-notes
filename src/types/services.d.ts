@@ -29,6 +29,7 @@ export interface Book {
     author: string;
     photo: string;
     flashcards: Flashcard[];
+    flashcardsPerStudySession?: number;
 }
 
 /**

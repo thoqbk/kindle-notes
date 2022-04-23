@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import * as assert from "assert";
 import { Book, Flashcard, Note } from "../../../types/services";
 import * as Transformers from "../../../utils/transformers";
 
@@ -12,6 +11,7 @@ name: "test-book"
 const markdown2 = `---
 id: v1234
 name: "test title 123"
+flashcardsPerStudySession: 6
 ---
 
 ##
@@ -47,7 +47,7 @@ excluded: true
 `;
 
 suite("Transformers Util Test Suite", () => {
-    test("toMarkdown should return correct frontmatter section", async () => {
+    test("toMarkdown should return correct frontmatter section", () => {
         const book: Book = {
             id: "123",
             name: "test-book",
@@ -57,6 +57,18 @@ suite("Transformers Util Test Suite", () => {
         };
         const result = Transformers.bookToMarkdown(book);
         expect(result).to.equal(markdow1);
+    });
+
+    test("toMarkdown should persist flashcardsPerStudySession if exists", () => {
+        const book: Book = {
+            id: "123",
+            name: "test-book",
+            author: "test-author",
+            photo: "test-photo",
+            flashcards: [],
+            flashcardsPerStudySession: 8,
+        };
+        expect(Transformers.bookToMarkdown(book)).contains("flashcardsPerStudySession: 8");
     });
 
     test("rawNoteToNote should return note with hash value", () => {
@@ -128,14 +140,21 @@ suite("Transformers Util Test Suite", () => {
 
     test("markdownToBook should parse the markdown content correctly", async () => {
         const book = Transformers.markdownToBook(markdown2);
-        assert.strictEqual(book.id, "v1234");
-        assert.strictEqual(book.name, "test title 123");
-        assert.strictEqual(book.flashcards.length, 2);
-        assert.strictEqual(book.flashcards[0].content, "line 1\nline 2");
-        assert.strictEqual(book.flashcards[1].content, "line 3\nline 4");
-        const note2 = book.flashcards[1];
-        assert.strictEqual(note2.location, 123);
-        assert.strictEqual(note2.page, 98);
-        assert.strictEqual(note2.excluded, true);
+
+        expect(book).to.contain({
+            id: "v1234",
+            name: "test title 123",
+            flashcardsPerStudySession: 6,
+        });
+        expect(book.flashcards).to.have.lengthOf(2);
+        expect(book.flashcards[0]).to.contain({
+            content: "line 1\nline 2",
+        });
+        expect(book.flashcards[1]).to.contain({
+            content: "line 3\nline 4",
+            location: 123,
+            page: 98,
+            excluded: true
+        });
     });
 });

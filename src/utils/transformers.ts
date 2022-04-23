@@ -114,6 +114,7 @@ export const markdownToBook = (markdown: string): Book => {
         author: frontMatter.attributes.author,
         photo: frontMatter.attributes.photo,
         flashcards: toFlashcards(frontMatter.body),
+        flashcardsPerStudySession: toFlashcardsPerStudySession(frontMatter.attributes.flashcardsPerStudySession),
     };
 };
 
@@ -125,4 +126,19 @@ const toFlashcards = (markdownBody: string): Flashcard[] => {
         .filter(fc => !!fc.content);
 };
 
-const frontMatter = (book: Book) => `---\nid: ${book.id}\nname: "${book.name}"\n---\n`;
+const frontMatter = (book: Book) => {
+    let retVal = `---\nid: ${book.id}\nname: "${book.name}"\n`;
+    if (book.flashcardsPerStudySession && book.flashcardsPerStudySession > 0) {
+        retVal += `flashcardsPerStudySession: ${book.flashcardsPerStudySession}\n`;
+    }
+    retVal += "---\n";
+    return retVal;
+};
+
+const toFlashcardsPerStudySession = (value: any): (number | undefined) => {
+    const retVal = +value;
+    if (!value || !Number.isInteger(retVal) || retVal <= 0) {
+        return undefined;
+    }
+    return retVal;
+};
