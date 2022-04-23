@@ -11,7 +11,7 @@ import config from "../config";
 
 const defaultTotalFlashcards = 10;
 
-let currentSession: StudySession | undefined;
+let currentSessionId: string | undefined;
 let currentFlashcard: FlashcardDto | undefined;
 let currentPanel: vscode.WebviewPanel | undefined;
 
@@ -31,10 +31,11 @@ const viewType = "kindleNotes";
 export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: string) => {
     currentFlashcard = undefined;
     try {
-        currentSession = await FlashcardService.newStudySession({
+        const session = await FlashcardService.newStudySession({
             bookId,
             totalFlashcards: defaultTotalFlashcards,
         });
+        currentSessionId = session.id;
     } catch (e) {
         logger.error(`Cannot create new session for the book ${bookId}`);
         vscode.window.showInformationMessage(`${(e as Error).message}`);
@@ -95,11 +96,11 @@ const onDidReceiveMessage = async (message: any) => {
         }
         case "submitResult": {
             logger.info(`Received result from webview. Grade ${message.payload.grade}`);
-            if (!currentSession || !currentFlashcard) {
+            if (!currentSessionId || !currentFlashcard) {
                 throw new Error(`Cannot submitResult due to invalid session state`);
             }
             await FlashcardService.saveResult({
-                sessionId: currentSession.id,
+                sessionId: currentSessionId,
                 flashcardHash: currentFlashcard.hash,
                 grade: message.payload.grade,
             });
@@ -127,15 +128,17 @@ const onDidReceiveMessage = async (message: any) => {
 };
 
 const onDidDispose = async () => {
+    const currentSession = await getCurrentSession();
     if (currentSession?.status === "on-going") {
         await FlashcardService.cancel(currentSession.id);
     }
-    currentSession = undefined;
+    currentSessionId = undefined;
     currentPanel = undefined;
     logger.info("Released resources because webview was disposed");
 };
 
 const initFlashcard = async () => {
+    const currentSession = await getCurrentSession();
     if (!currentPanel || !currentSession) {
         return;
     }
@@ -151,6 +154,7 @@ const initFlashcard = async () => {
 };
 
 const nextFlashcard = async () => {
+    const currentSession = await getCurrentSession();
     if (!currentPanel || !currentSession) {
         return;
     }
@@ -201,3 +205,5 @@ const openFlashcardMarkdown = async (payload: OpenFlashcardMarkdownPayload) => {
         logger.info(`Cannot open markdown file ${location.fullFilePath}, line ${location.line}`);
     }
 };
+
+const getCurrentSession = async () => currentSessionId ? FlashcardService.getSession(currentSessionId) : undefined;

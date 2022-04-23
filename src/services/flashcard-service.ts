@@ -133,6 +133,11 @@ export const refreshCards = async (refreshingFlashcards: FlashcardDto[]): Promis
     return retVal;
 };
 
+export const getSession = async (id: string): Promise<StudySession | undefined> => {
+    const dbData = await db.load();
+    return dbData.sessions.find(s => s.id === id);
+};
+
 const pickBook = async (): Promise<Book | undefined> => {
     const books = await BookService.allBooks();
     const dbData = await db.load();
