@@ -45,6 +45,7 @@ const config = {
     webPath,
     getConfig,
     updateConfig,
+    getFlashcardsPerStudySession: () => +getConfig(constants.flashcardsPerStudySessionConfigKey),
 };
 
 export default config;

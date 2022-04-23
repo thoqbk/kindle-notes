@@ -1,7 +1,7 @@
 {
 	"name": "kindle-notes",
 	"displayName": "Kindle Notes",
-	"description": "Simple flashcards extension. Ability to sync with your Kindle",
+	"description": "Simple flashcards and notes extension. Ability to sync with your Kindle",
 	"version": "0.0.4",
 	"publisher": "thoqbk",
 	"keywords": [
@@ -82,6 +82,11 @@
 				"kindle-notes.kindleEmail": {
 					"type": "string",
 					"description": "Email using to login to Kindle"
+				},
+				"kindle-notes.flashcardsPerStudySession": {
+					"type": "number",
+					"default": 10,
+					"description": "Number of flashcards in a study session"
 				}
 			}
 		}

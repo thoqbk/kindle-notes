@@ -3,13 +3,11 @@ import * as FlashcardService from "../services/flashcard-service";
 import * as BookService from "../services/book-service";
 import * as Files from "../utils/files";
 import * as path from "path";
-import { FlashcardDto, StudySession } from "../types/services";
+import { FlashcardDto } from "../types/services";
 import logger from "../logger";
 
 import open = require("open");
 import config from "../config";
-
-const defaultTotalFlashcards = 10;
 
 let currentSessionId: string | undefined;
 let currentFlashcard: FlashcardDto | undefined;
@@ -33,7 +31,7 @@ export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: 
     try {
         const session = await FlashcardService.newStudySession({
             bookId,
-            totalFlashcards: defaultTotalFlashcards,
+            totalFlashcards: config.getFlashcardsPerStudySession(),
         });
         currentSessionId = session.id;
     } catch (e) {
