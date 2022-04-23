@@ -29,10 +29,7 @@ const viewType = "kindleNotes";
 export const openFlashcards = async (context: vscode.ExtensionContext, bookId?: string) => {
     currentFlashcard = undefined;
     try {
-        const session = await FlashcardService.newStudySession({
-            bookId,
-            totalFlashcards: config.getFlashcardsPerStudySession(),
-        });
+        const session = await FlashcardService.newStudySession({ bookId });
         currentSessionId = session.id;
     } catch (e) {
         logger.error(`Cannot create new session for the book ${bookId}`);

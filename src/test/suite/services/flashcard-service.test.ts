@@ -11,6 +11,7 @@ import { DbData } from "../../../types/services";
 const book1 = Transformers.markdownToBook(`---
 id: 123
 name: "test book"
+flashcardsPerStudySession: 3
 ---
 
 ##
@@ -80,7 +81,6 @@ suite("FlashcardService Test Suite", () => {
         // act
         const result = await FlashcardService.newStudySession({
             bookId: "123",
-            totalFlashcards: 3
         });
 
         // assert
@@ -129,7 +129,6 @@ suite("FlashcardService Test Suite", () => {
         // act
         const result = await FlashcardService.newStudySession({
             bookId: "123",
-            totalFlashcards: 3
         });
 
         // assert
@@ -180,7 +179,7 @@ suite("FlashcardService Test Suite", () => {
         });
 
         // act
-        const result = await FlashcardService.newStudySession({ totalFlashcards: 3 });
+        const result = await FlashcardService.newStudySession({});
 
         // assert
         expect(result.scheduled.length).greaterThanOrEqual(1);

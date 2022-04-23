@@ -54,7 +54,6 @@ export interface FlashcardDto {
 
 export interface NewStudySessionRequest {
     bookId?: string;
-    totalFlashcards: number;
 }
 
 export interface StudySession {

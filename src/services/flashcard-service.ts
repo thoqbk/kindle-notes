@@ -6,6 +6,7 @@ import db from "../db";
 import sm2 from "../utils/sm2";
 import { Book, Flashcard, FlashcardDto, NewStudySessionRequest, SaveResultRequest, StudySession, FlashcardSm2, DbData, StringNumberMap } from "../types/services";
 import * as BookService from "./book-service";
+import config from "../config";
 
 const msADay = 24 * 60 * 60 * 1000;
 
@@ -15,7 +16,8 @@ export const newStudySession = async (request: NewStudySessionRequest): Promise<
     if (!book) {
         throw new Error(noFlashcard);
     }
-    const scheduled = (await pickFlashcards(book, request.totalFlashcards)).map(fc => fc.hash);
+    const totalFlashcards = book.flashcardsPerStudySession || config.getFlashcardsPerStudySession();
+    const scheduled = (await pickFlashcards(book, totalFlashcards)).map(fc => fc.hash);
     if (!scheduled.length) {
         throw new Error(noFlashcard);
     }
@@ -24,7 +26,7 @@ export const newStudySession = async (request: NewStudySessionRequest): Promise<
         bookId: book.id,
         scheduled,
         needToReview: [],
-        totalFlashcards: request.totalFlashcards,
+        totalFlashcards,
         shown: 0,
         status: "on-going",
         startedAt: now(),
