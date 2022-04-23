@@ -4,7 +4,7 @@ import logger from "../logger";
 import { now } from "../utils/times";
 import db from "../db";
 import sm2 from "../utils/sm2";
-import { Book, Flashcard, FlashcardDto, NewStudySessionRequest, SaveResultRequest, StudySession, FlashcardSm2 } from "../types/services";
+import { Book, Flashcard, FlashcardDto, NewStudySessionRequest, SaveResultRequest, StudySession, FlashcardSm2, DbData } from "../types/services";
 import * as BookService from "./book-service";
 
 const msADay = 24 * 60 * 60 * 1000;
@@ -14,7 +14,7 @@ export const newStudySession = async (request: NewStudySessionRequest): Promise<
     if (!book) {
         throw new Error(`Create 1 book before start`);
     }
-    const scheduled = pickFlashcards(book, request.totalFlashcards).map(fc => fc.hash);
+    const scheduled = (await pickFlashcards(book, request.totalFlashcards)).map(fc => fc.hash);
     if (!scheduled.length) {
         throw new Error(`No flashcards available for this book`);
     }
@@ -28,18 +28,16 @@ export const newStudySession = async (request: NewStudySessionRequest): Promise<
         status: "on-going",
         startedAt: now(),
     };
-    db.sessions.push(retVal);
-    await db.save();
+    const dbData = await db.load();
+    dbData.sessions.push(retVal);
+    await db.save(dbData);
     return retVal;
-};
-
-export const getStudySession = async (sessionId: string): Promise<StudySession | undefined> => {
-    return db.sessions.find(s => s.id === sessionId);
 };
 
 export const cancel = async (sessionId: string): Promise<StudySession> => {
     logger.info(`Cancelling session ${sessionId}`);
-    const session = await getStudySession(sessionId);
+    const dbData = await db.load();
+    const session = dbData.sessions.find(s => s.id === sessionId);
     if (!session) {
         throw new Error(`Session not found ${sessionId}`);
     }
@@ -47,13 +45,14 @@ export const cancel = async (sessionId: string): Promise<StudySession> => {
         throw new Error(`Cannot cancel this session ${sessionId}. Invalid session status: ${session.status}`);
     }
     session.status = "cancelled";
-    await db.save();
+    await db.save(dbData);
     logger.info(`Session ${session.id} has been cancelled`);
     return session;
 };
 
 export const nextFlashcard = async (sessionId: string): Promise<FlashcardDto> => {
-    const session = db.sessions.find(s => s.id === sessionId);
+    const dbData = await db.load();
+    const session = dbData.sessions.find(s => s.id === sessionId);
     if (!session) {
         throw new Error(`Session ${sessionId} not found`);
     }
@@ -81,19 +80,20 @@ export const nextFlashcard = async (sessionId: string): Promise<FlashcardDto> =>
         throw new Error(`Cannot pick flashcard for session ${sessionId}`);
     }
     session.shown++;
-    await db.save();
+    await db.save(dbData);
     return await getFlashcardDto(session, hash);
 };
 
 export const saveResult = async (request: SaveResultRequest): Promise<void> => {
-    const session = db.sessions.find(s => s.id === request.sessionId);
+    const dbData = await db.load();
+    const session = dbData.sessions.find(s => s.id === request.sessionId);
     if (!session) {
         throw new Error(`Session not found ${request.sessionId}`);
     }
     if (session.scheduled.indexOf(request.flashcardHash) < 0 && session.needToReview.indexOf(request.flashcardHash) < 0) {
         throw new Error(`Flashcard not found in the session. Session ${session.id}, hash ${request.flashcardHash}`);
     }
-    await updateSm2(session, request.flashcardHash, request.grade);
+    updateSm2(dbData, session, request.flashcardHash, request.grade);
     session.needToReview = session.needToReview.filter(v => v !== request.flashcardHash);
     if (request.grade < 2) {
         session.needToReview.push(request.flashcardHash);
@@ -102,7 +102,7 @@ export const saveResult = async (request: SaveResultRequest): Promise<void> => {
         session.status = "completed";
         session.endedAt = now();
     }
-    await db.save();
+    await db.save(dbData);
 };
 
 export const refreshCards = async (refreshingFlashcards: FlashcardDto[]): Promise<FlashcardDto[]> => {
@@ -135,7 +135,8 @@ export const refreshCards = async (refreshingFlashcards: FlashcardDto[]): Promis
 
 const pickBook = async (): Promise<Book | undefined> => {
     const books = await BookService.allBooks();
-    const sm2 = _.fromPairs(db.sm2.map(v => [flashcardKey(v.bookId, v.hash), v]));
+    const dbData = await db.load();
+    const sm2 = _.fromPairs(dbData.sm2.map(v => [flashcardKey(v.bookId, v.hash), v]));
     const validFlashcards: {
         [key: string]: number;
     } = {};
@@ -163,8 +164,9 @@ const pickBook = async (): Promise<Book | undefined> => {
     return undefined;
 };
 
-const pickFlashcards = (book: Book, totalFlashcards: number): Flashcard[] => {
-    const sm2 = _.fromPairs(db.sm2.filter(v => v.bookId === book.id).map(v => [v.hash, v]));
+const pickFlashcards = async (book: Book, totalFlashcards: number): Promise<Flashcard[]> => {
+    const dbData = await db.load();
+    const sm2 = _.fromPairs(dbData.sm2.filter(v => v.bookId === book.id).map(v => [v.hash, v]));
     const includedFlashcards = book.flashcards.filter(fc => !fc.excluded);
     let validFlashcards = includedFlashcards.filter(fc => validAge(sm2[fc.hash]));
     if (!validFlashcards.length) { // if not validAge flashcards, try to filter by `excluded` only
@@ -198,12 +200,12 @@ const getFlashcardDto = async (session: StudySession, hash: string): Promise<Fla
         location: flashcard.location,
         position: session.shown - 1,
         totalFlashcards: session.totalFlashcards,
-        lastGrade: db.sm2.find(v => v.bookId === session.bookId && v.hash === hash)?.lastGrade,
+        lastGrade: (await db.load()).sm2.find(v => v.bookId === session.bookId && v.hash === hash)?.lastGrade,
         src: flashcard.src,
     };
 };
 
-const updateSm2 = async (session: StudySession, hash: string, grade: number) => {
+const updateSm2 = (dbData: DbData, session: StudySession, hash: string, grade: number) => {
     const defaultSm2: FlashcardSm2 = {
         bookId: session.bookId,
         hash,
@@ -213,15 +215,15 @@ const updateSm2 = async (session: StudySession, hash: string, grade: number) => 
         lastReview: 0,
         lastGrade: 0,
     };
-    const currentSm2 = db.sm2.find(v => v.bookId === session.bookId && v.hash === hash) || defaultSm2;
+    const currentSm2 = dbData.sm2.find(v => v.bookId === session.bookId && v.hash === hash) || defaultSm2;
     const result = sm2({
         userGrade: grade,
         repetitionNumber: currentSm2.repetitionNumber,
         easinessFactor: currentSm2.easinessFactor,
         interval: currentSm2.interval
     });
-    db.sm2 = db.sm2.filter(v => v.bookId !== session.bookId || v.hash !== hash);
-    db.sm2.push({
+    dbData.sm2 = dbData.sm2.filter(v => v.bookId !== session.bookId || v.hash !== hash);
+    dbData.sm2.push({
         ...currentSm2,
         ...result,
         lastGrade: grade,

@@ -1,39 +1,51 @@
-import { Db } from "./types/services";
+import { Db, DbData } from "./types/services";
 import * as path from "path";
 import * as fs from "fs/promises";
 import config from "./config";
 import * as Files from "./utils/files";
 import logger from "./logger";
 
-const dbPath = path.join(config.getFlashcardsHomePath(), "db.json");
+const defaultDb = (): DbData => ({
+    sessions: [],
+    sm2: [],
+});
 
-const save = async (): Promise<void> => {
-    const data = JSON.stringify({
-        sessions: db.sessions,
-        sm2: db.sm2,
-    });
-    await fs.writeFile(dbPath, data, "utf8");
+let dbData: DbData = defaultDb();
+
+let lastLoadedDbPath = "";
+
+const save = async (savingData: DbData): Promise<void> => {
+    dbData = savingData;
+    const dataInString = JSON.stringify(dbData);
+    await fs.writeFile(getDbPath(), dataInString, "utf8");
     logger.info("Db was persisted");
 };
 
-const db: Db = {
-    sessions: [],
-    sm2: [],
-    save,
-};
-
-const load = async (): Promise<void> => {
-    if (Files.exists(dbPath)) {
-        const data = JSON.parse(await fs.readFile(dbPath, "utf8"));
-        db.sessions = data.sessions;
-        db.sm2 = data.sm2;
+const load = async (): Promise<DbData> => {
+    const dbPath = getDbPath();
+    if (dbPath === lastLoadedDbPath) {
+        return dbData;
     }
+    if (Files.exists(dbPath)) {
+        dbData = JSON.parse(await fs.readFile(dbPath, "utf8"));
+        lastLoadedDbPath = dbPath;
+        logger.info("Db was loaded");
+        return dbData;
+    }
+    return defaultDb();
 };
 
-load().then(() => {
-    logger.info("Db was loaded");
-}).catch((e) => {
-    logger.error(`Cannot load db file ${dbPath}`, e);
-});
+const clearCache = () => {
+    lastLoadedDbPath = "";
+    dbData = defaultDb();
+};
+
+const db: Db = {
+    save,
+    load,
+    clearCache,
+};
+
+const getDbPath = () => path.join(config.throwOrGetFlashcardsHomePath(), "db.json");
 
 export default db;

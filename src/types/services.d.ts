@@ -97,10 +97,15 @@ export interface FlashcardSm2 {
     lastGrade: number;
 }
 
-export interface Db {
+export interface DbData {
     sessions: StudySession[];
     sm2: FlashcardSm2[];
-    save: () => Promise<void>;
+}
+
+export interface Db {
+    load: () => Promise<DbData>;
+    save: (data: DbData) => Promise<void>;
+    clearCache: () => void;
 }
 
 export interface SaveResultRequest {
