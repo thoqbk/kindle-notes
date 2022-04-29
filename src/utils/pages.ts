@@ -1,18 +1,24 @@
 import { Note } from "../types/services";
 
-export const extractRawNotePageFn = (elements: Element[], noteSelector: unknown, highlightHeaderSelector: unknown): Note[] => {
+export const extractRawNotePageFn = (elements: Element[], highlightSelector: unknown, noteSelector: unknown, highlightHeaderSelector: unknown): Note[] => {
     return elements.map(element => {
-        const noteElement = element.querySelector(noteSelector as string);
-        const highlightElement = element.querySelector(highlightHeaderSelector as string);
-        if (noteElement === null || highlightElement === null) {
-            return null;
+        const highlightElement = element.querySelector(highlightSelector as string);
+        const headerElement = element.querySelector(highlightHeaderSelector as string);
+        const rawId = highlightElement?.parentElement?.id;
+        const highlight = highlightElement?.textContent;
+        const highlightHeader = headerElement?.textContent;
+        if (!rawId || !highlight || !highlightHeader) {
+            return undefined;
         }
-        return {
-            rawId: noteElement.parentElement?.id,
-            content: noteElement.textContent,
-            highlightHeader: highlightElement.textContent,
+        const noteElement = element.querySelector(noteSelector as string);
+        const retVal: Note = {
+            rawId,
+            highlight,
+            highlightHeader,
+            note: noteElement?.textContent || undefined,
         };
-    }).filter((note): note is Note => note !== null);
+        return retVal;
+    }).filter(n => n) as Note[];
 };
 
 /**

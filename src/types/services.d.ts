@@ -4,8 +4,9 @@
 */
 export interface Note {
     rawId: string;
-    highlightHeader: string;
-    content: string;
+    highlightHeader: string; // e.g. `Yellow highlight | Location: 5,966`
+    highlight: string;
+    note?: string; // when user highlight text and add notes
 }
 
 export interface Flashcard {

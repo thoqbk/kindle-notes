@@ -18,7 +18,8 @@ const emailSelector = "input[type='email']";
 const passwordSelector = "input[type='password']";
 const notesContainerSelector = "div#kp-notebook-annotations-pane";
 const noteBlocksSelector = "#kp-notebook-annotations .kp-notebook-row-separator";
-const noteSelector = "#highlight";
+const highlightSelector = "#highlight";
+const noteSelector = "#note";
 const highlightHeaderSelector = "#annotationHighlightHeader";
 const booksSelector = "#kp-notebook-library .kp-notebook-library-each-book";
 const bookNameSelector = "a h2";
@@ -104,7 +105,9 @@ const fetchNotes = async (bookId: string, browser: puppeteer.Browser): Promise<N
     const retVal = await notesPage.$$eval(
         noteBlocksSelector,
         Pages.extractRawNotePageFn,
-        noteSelector, highlightHeaderSelector
+        highlightSelector,
+        noteSelector,
+        highlightHeaderSelector
     );
     logger.info(`Found ${retVal.length} raw-notes for book ${bookId}`);
     return retVal;

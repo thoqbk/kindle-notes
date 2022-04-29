@@ -71,15 +71,27 @@ suite("Transformers Util Test Suite", () => {
         expect(Transformers.bookToMarkdown(book)).contains("flashcardsPerStudySession: 8");
     });
 
-    test("rawNoteToNote should return note with hash value", () => {
+    test("noteToFlashcard should return note with hash value", () => {
         const rawNote: Note = {
             rawId: "highlight-testId",
-            content: "hello",
+            highlight: "hello",
             highlightHeader: "Hello | Location: 123",
         };
-        const note = Transformers.noteToFlashcard(rawNote);
-        expect(note.hash).not.null;
-        expect(note.hash.length).greaterThan(10);
+        const fc = Transformers.noteToFlashcard(rawNote);
+        expect(fc.hash).not.null;
+        expect(fc.content).eq("hello");
+        expect(fc.hash.length).greaterThan(10);
+    });
+
+    test("noteToFlashcard should combine note to flashcard content", () => {
+        const note: Note = {
+            rawId: "highlight-testId",
+            highlightHeader: "Hello | Location: 123",
+            highlight: "this is highlight",
+            note: "this is note<br>line 1<br/>line 2<br>"
+        };
+        const fc = Transformers.noteToFlashcard(note);
+        expect(fc.content).eq("this is highlight\nthis is note\nline 1\nline 2");
     });
 
     test("flashcardToMarkdown should persist hash value", () => {

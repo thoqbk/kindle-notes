@@ -4,6 +4,7 @@ import { Book, Flashcard, Note } from "../types/services";
 import { now } from "./times";
 
 import md5 = require("md5");
+import { replaceAllNoRegex } from "./strings";
 const fm = require("front-matter");
 
 const defaultHash = "";
@@ -23,12 +24,12 @@ export const calcHash = (content: string, existingHashes?: Set<string>): string 
 export const noteToFlashcard = (note: Note): Flashcard => {
     const idItems = note?.rawId.split("-");
     const id = (idItems && idItems.length === 2 && idItems[1]) || "";
-    const content = note.content?.trim();
+    const content = buildFlashcardContent(note.highlight, note.note);
     const hash = calcHash(id || content);
-    
+
     const pageItems = note.highlightHeader?.split("Page:");
     const locationItems = note.highlightHeader?.split("Location:");
-    
+
     return {
         content,
         hash,
@@ -139,6 +140,15 @@ const toFlashcardsPerStudySession = (value: any): (number | undefined) => {
     const retVal = +value;
     if (!value || !Number.isInteger(retVal) || retVal <= 0) {
         return undefined;
+    }
+    return retVal;
+};
+
+const buildFlashcardContent = (highlight: string, note?: string): string => {
+    let retVal = highlight;
+    const cleanedNote = note ? replaceAllNoRegex(replaceAllNoRegex(note, "<br>", "\n"), "<br/>", "\n").trim() : "";
+    if (cleanedNote) {
+        retVal += `\n${cleanedNote}`;
     }
     return retVal;
 };
