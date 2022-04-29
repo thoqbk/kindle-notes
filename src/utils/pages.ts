@@ -15,7 +15,7 @@ export const extractRawNotePageFn = (elements: Element[], highlightSelector: unk
             rawId,
             highlight,
             highlightHeader,
-            note: noteElement?.textContent || undefined,
+            note: noteElement?.innerHTML || undefined,
         };
         return retVal;
     }).filter(n => n) as Note[];
