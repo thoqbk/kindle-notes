@@ -27,6 +27,9 @@ export const getBook = async (bookId: string): Promise<Book | undefined> => {
     return data ? Transformers.markdownToBook(data) : undefined;
 };
 
+/**
+ * To save books when syncing with Kindle
+ */
 export const saveBooks = async (fromKindle: Book[]): Promise<void> => {
     logger.info(`Saving ${fromKindle.length} books to markdown files`);
     const markdowns = await allMarkdowns();
@@ -36,15 +39,16 @@ export const saveBooks = async (fromKindle: Book[]): Promise<void> => {
     const flashcardsHomePath = config.throwOrGetFlashcardsHomePath();
     for (const book of fromKindle) {
         const existingBook = existingBooks[book.id];
+        const savingBook = { ...book };
         if (existingBook) {
-            const merged = mergeFlashcards(existingBook.flashcards, book.flashcards);
-            copyUserData(merged, existingBook.flashcards);
-            book.flashcards = merged;
+            copyBookUserData(savingBook, existingBook);
+            savingBook.flashcards = mergeFlashcards(existingBook.flashcards, book.flashcards);
+            copyFcUserData(savingBook.flashcards, existingBook.flashcards);
         }
 
-        const defaultFileName = suffixFileName(flashcardsHomePath, Files.determineFileName(book.name), allFilePaths);
-        const filePath = filePathByBookIds[book.id] || path.join(flashcardsHomePath, defaultFileName);
-        await Files.writeFile(filePath, Transformers.bookToMarkdown(book));
+        const defaultFileName = suffixFileName(flashcardsHomePath, Files.determineFileName(savingBook.name), allFilePaths);
+        const filePath = filePathByBookIds[savingBook.id] || path.join(flashcardsHomePath, defaultFileName);
+        await Files.writeFile(filePath, Transformers.bookToMarkdown(savingBook));
     }
     logger.info("Books saved");
 };
@@ -113,11 +117,13 @@ const allMarkdowns = async (): Promise<Markdown[]> => {
 
 /**
  * Pick user flashCards in markdown and merge with kindleFlashcards to keep their relative order
+ * 
+ * The function clones but not modify input cards
  */
 const mergeFlashcards = (markdownFlashcards: Flashcard[], kindleFlashcards: Flashcard[]): Flashcard[] => {
     const retVal: Flashcard[] = [
-        ...markdownFlashcards.filter(md => md.src === "user"),
-        ...kindleFlashcards,
+        ...markdownFlashcards.map(fc => ({ ...fc })).filter(md => md.src === "user"),
+        ...kindleFlashcards.map(fc => ({ ...fc })),
     ];
     const kindleFcPositions: StringNumberMap = _.fromPairs(kindleFlashcards.map((kd, idx) => [kd.hash, idx]));
     const userFcPositions: StringNumberMap = {};
@@ -160,10 +166,16 @@ const mergeFlashcards = (markdownFlashcards: Flashcard[], kindleFlashcards: Flas
     return retVal;
 };
 
+const copyBookUserData = (savingBook: Book, existingBook: Book) => {
+    if (existingBook.flashcardsPerStudySession) {
+        savingBook.flashcardsPerStudySession = existingBook.flashcardsPerStudySession;
+    }
+};
+
 /**
  * Copy user-data e.g. backside, excluded
  */
-const copyUserData = (merged: Flashcard[], markdown: Flashcard[]) => {
+const copyFcUserData = (merged: Flashcard[], markdown: Flashcard[]) => {
     const existing: {
         [key: string]: Flashcard
     } = _.fromPairs(markdown.map(fc => ([fc.hash, fc])));
