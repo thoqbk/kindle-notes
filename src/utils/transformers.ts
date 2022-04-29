@@ -5,6 +5,7 @@ import { now } from "./times";
 
 import md5 = require("md5");
 import { replaceAllNoRegex } from "./strings";
+import constants from "../constants";
 const fm = require("front-matter");
 
 const defaultHash = "";
@@ -61,14 +62,14 @@ export const flashcardToMarkdown = (flashcard: Flashcard): string => {
     }
     let backside = "";
     if (flashcard.backside) {
-        backside = `\n\n%%\n\n${flashcard.backside}`;
+        backside = `\n\n${constants.fsBsSplitter}\n\n${flashcard.backside}`;
     }
     return `\n##\n${flashcard.content}${backside}${metadata}\n`;
 };
 
 export const mardownToFlashcard = (markdown: string): Flashcard => {
     const withoutMetadata = markdown.replace("##", "").replace(/\<\!\-\-([^]+)\-\-\>/g, "");
-    const contentItems = withoutMetadata.split(/\%\%\n+/);
+    const contentItems = withoutMetadata.split(new RegExp(`${constants.fsBsSplitter}\n+`));
     const retVal: Flashcard = {
         content: contentItems[0].trim(),
         hash: defaultHash,

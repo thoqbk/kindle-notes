@@ -15,4 +15,6 @@ export default {
     serviceInKeyChain: "Kindle Notes",
     typeInKeyChain: "internet",
     flashcardsPerStudySessionConfigKey,
+
+    fsBsSplitter: "%%",
 };
