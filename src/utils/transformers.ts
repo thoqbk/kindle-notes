@@ -25,7 +25,7 @@ export const calcHash = (content: string, existingHashes?: Set<string>): string 
 export const noteToFlashcard = (note: Note): Flashcard => {
     const idItems = note?.rawId.split("-");
     const id = (idItems && idItems.length === 2 && idItems[1]) || "";
-    const content = buildFlashcardContent(note.highlight, note.note);
+    const [content, backside] = buildFsBsContent(note.highlight, note.note);
     const hash = calcHash(id || content);
 
     const pageItems = note.highlightHeader?.split("Page:");
@@ -33,6 +33,7 @@ export const noteToFlashcard = (note: Note): Flashcard => {
 
     return {
         content,
+        backside,
         hash,
         page: pageItems?.length === 2 ? +(pageItems[1].replace(/\D/g, "")) : undefined,
         location: locationItems?.length === 2 ? +locationItems[1].replace(/\D/g, "") : undefined,
@@ -145,11 +146,12 @@ const toFlashcardsPerStudySession = (value: any): (number | undefined) => {
     return retVal;
 };
 
-const buildFlashcardContent = (highlight: string, note?: string): string => {
+const buildFsBsContent = (highlight: string, note?: string): [string, string?] => {
     let retVal = highlight;
     const cleanedNote = note ? replaceAllNoRegex(replaceAllNoRegex(note, "<br>", "\n"), "<br/>", "\n").trim() : "";
     if (cleanedNote) {
-        retVal += `\n${cleanedNote}`;
+        retVal += `\n\n${cleanedNote}`;
     }
-    return retVal;
+    const fc = mardownToFlashcard(`##\n${retVal}`);
+    return [fc.content, fc.backside];
 };

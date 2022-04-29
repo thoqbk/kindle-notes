@@ -91,7 +91,21 @@ suite("Transformers Util Test Suite", () => {
             note: "this is note<br>line 1<br/>line 2<br>"
         };
         const fc = Transformers.noteToFlashcard(note);
-        expect(fc.content).eq("this is highlight\nthis is note\nline 1\nline 2");
+        expect(fc.content).eq("this is highlight\n\nthis is note\nline 1\nline 2");
+    });
+
+    test("noteToFlashcard detect fsBsSplitter in note", () => {
+        const note: Note = {
+            rawId: "highlight-testId",
+            highlightHeader: "Hello | Location: 123",
+            highlight: "this is highlight",
+            note: "Q: question\n%%\nthis is the answer"
+        };
+        const fc = Transformers.noteToFlashcard(note);
+        expect(fc).to.deep.contain({
+            content: "this is highlight\n\nQ: question",
+            backside: "this is the answer"
+        });
     });
 
     test("flashcardToMarkdown should persist hash value", () => {
