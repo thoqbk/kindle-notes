@@ -41,7 +41,7 @@ const FlashcardRoute = () => {
     const received = (event: MessageEvent) => {
       const message = event.data;
       console.log("Receiving new message from KN", message);
-      switch(message.type) {
+      switch (message.type) {
         case "initFlashcard": {
           loadFlashcard(message.payload);
           break;
@@ -61,7 +61,7 @@ const FlashcardRoute = () => {
     };
 
     window.addEventListener("message", received);
-    postMessage({ type: "initFlashcard"});
+    postMessage({ type: "initFlashcard" });
 
     return () => {
       window.removeEventListener("message", received);
@@ -106,11 +106,11 @@ const FlashcardRoute = () => {
 
   const renderBody = () => {
     const content = frontside ? flashcard.content : flashcard.backside;
-    return <p className="lead" id="flashcard-body">
+    return <div className="lead" id="flashcard-body">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>
         {content || ""}
       </ReactMarkdown>
-    </p>
+    </div>
   };
 
   const renderBookName = () => (
@@ -137,9 +137,9 @@ const FlashcardRoute = () => {
 
   const renderLevelButtons = () => _.times(5).map(n => {
     return <button onClick={() => handleLevelClicked(n)} type="button" className={`btn lvl-${n}`} key={`btn-${n}`}>
-      { n + 1 }
-      { n === 0 ? (<><br/>Not At All</>) : null }
-      { n === 4 ? (<><br/>Perfectly</>) : null }
+      {n + 1}
+      {n === 0 ? (<><br />Not At All</>) : null}
+      {n === 4 ? (<><br />Perfectly</>) : null}
     </button>
   });
 

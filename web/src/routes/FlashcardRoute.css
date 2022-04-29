@@ -82,3 +82,7 @@
 .last-grade-4 {
   border-left: 3px solid #00a8d7;
 }
+
+#flashcard-body {
+  text-align: left;
+};
