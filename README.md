@@ -77,3 +77,10 @@ Next flashcard
 | Kindle-notes: Show Logger | Specify whether the logger UI will popup or not | `false` |
 | Kindle-notes: Kindle Email | Email using to login to Kindle. Will be asked the first time you use the `Sync Books` command | |
 | Kindle-notes: Flashcards Per Study Session | Number of flashcards in a study session | `10` | |
+
+## Release notes
+
+### v.0.0.6
+- Sync note content from Kindle
+- Fix: missing `flashcardsPerStudySession` after sync
+- Align flashcard content to the left
