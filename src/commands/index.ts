@@ -18,6 +18,7 @@ const flashcardsHomePathKey = "flashcardsHomePath";
 
 export const registerCommands = (context: vscode.ExtensionContext) => {
     logger.info("Registering commands");
+    updateSupportedDirs();
     context.subscriptions.push(vscode.commands.registerCommand(studyCommand, () => {
         runCommand(studyCommand, context, () => openFlashcards(context));
     }));
@@ -51,6 +52,7 @@ type RunCommandFn = () => Promise<any>;
 
 const runCommand = async (command: string, context: vscode.ExtensionContext, fn: RunCommandFn) => {
     logger.info(`Running command ${command}`);
+    updateSupportedDirs();
     const flashcardsHomePath = await Files.getOrCreateFlashcardsDir();
     if (Files.exists(flashcardsHomePath)) {
         return fn();
@@ -98,3 +100,14 @@ const handleOnWillSaveTextDocument = (event: vscode.TextDocumentWillSaveEvent) =
         }
     }
 };
+
+/**
+ * Ref: https://code.visualstudio.com/api/references/when-clause-contexts#in-conditional-operator
+ */
+const updateSupportedDirs = () => vscode
+    .commands
+    .executeCommand(
+        "setContext",
+        "kindle-notes.supportedDirs",
+        [config.getFlashcardsHomePath()]
+    );

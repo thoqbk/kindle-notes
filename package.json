@@ -39,7 +39,14 @@
 			"commandPalette": [
 				{
 					"command": "kindle-notes.studyThisFile",
-					"when": "editorLangId == markdown"
+					"when": "editorLangId == markdown && resourceDirname in kindle-notes.supportedDirs"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "kindle-notes.studyThisFile",
+					"when": "editorLangId == markdown && resourceDirname in kindle-notes.supportedDirs",
+					"group": "navigation"
 				}
 			]
 		},
@@ -50,7 +57,8 @@
 			},
 			{
 				"command": "kindle-notes.studyThisFile",
-				"title": "Kindle Notes: Study This File"
+				"title": "Kindle Notes: Study This File",
+				"icon": "$(zap)"
 			},
 			{
 				"command": "kindle-notes.syncBooks",
