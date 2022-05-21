@@ -80,6 +80,11 @@ Next flashcard
 
 ## Release notes
 
+### v.0.0.7
+- Move db.json to tmp folder
+- Add action `Study this file` to editor title
+- Add strict `when` condition for `Study this file`
+
 ### v.0.0.6
 - Sync note content from Kindle
 - Fix: missing `flashcardsPerStudySession` after sync
