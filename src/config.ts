@@ -46,6 +46,7 @@ const config = {
     getConfig,
     updateConfig,
     getFlashcardsPerStudySession: () => +getConfig(constants.flashcardsPerStudySessionConfigKey),
+    isUnitTesting: false,
 };
 
 export default config;

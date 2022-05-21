@@ -1,3 +1,4 @@
+import * as os from "os";
 import { Db, DbData } from "./types/services";
 import * as path from "path";
 import * as fs from "fs/promises";
@@ -26,6 +27,7 @@ const load = async (): Promise<DbData> => {
     if (dbPath === lastLoadedDbPath) {
         return dbData;
     }
+    logger.info(`Loading Db from ${dbPath}`);
     if (Files.exists(dbPath)) {
         dbData = JSON.parse(await fs.readFile(dbPath, "utf8"));
         lastLoadedDbPath = dbPath;
@@ -46,6 +48,9 @@ const db: Db = {
     clearCache,
 };
 
-const getDbPath = () => path.join(config.throwOrGetFlashcardsHomePath(), "db.json");
+const getDbPath = () => path.join(
+    os.tmpdir(),
+    `${config.isUnitTesting ? "test-" : ""}kindle-notes-db.json`
+);
 
 export default db;

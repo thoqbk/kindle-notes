@@ -99,7 +99,6 @@
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js",
 		"build-web": "cd web && npm run build && cd ..",
-
 		"esbuild": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify",
 		"vscode:prepublish": "rm -rf out && npm run esbuild && npm run build-web",
 		"package": "npm run test && vsce package"
@@ -133,5 +132,11 @@
 		"open": "^8.4.0",
 		"puppeteer": "^13.4.1",
 		"uuid": "^8.3.2"
+	},
+	"__metadata": {
+		"id": "742503f1-35b1-4b34-8f5f-6cfa9ea73716",
+		"publisherDisplayName": "Tho Luong",
+		"publisherId": "b633a2c5-5f75-4528-8a75-c8b2afbd6b2a",
+		"isPreReleaseVersion": false
 	}
 }

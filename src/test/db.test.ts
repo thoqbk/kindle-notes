@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import * as fs from "fs/promises";
+import * as os from "os";
 import * as Files from "../utils/files";
 import config from "../config";
 import db from "../db";
@@ -36,10 +37,10 @@ suite("Db Util Test Suite", () => {
         // arrange
         (Files as any).exists = () => true;
         (fs as any).readFile = () => `{ "sessions": [1], "sm2": [2] }`;
-        (config as any).throwOrGetFlashcardsHomePath = () => "test";
+        (os as any).tmpdir = () => "test";
         const result1 = await db.load();
         
-        (config as any).throwOrGetFlashcardsHomePath = () => "test2";
+        (os as any).tmpdir = () => "test2";
         const result2 = await db.load();
 
         // assert

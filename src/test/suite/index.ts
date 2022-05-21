@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as Mocha from 'mocha';
 import * as glob from 'glob';
+import config from '../../config';
 
 export function run(): Promise<void> {
 	// Create the mocha test
@@ -22,6 +23,7 @@ export function run(): Promise<void> {
 
 			try {
 				// Run the mocha test
+				config.isUnitTesting = true;
 				mocha.run(failures => {
 					if (failures > 0) {
 						e(new Error(`${failures} tests failed.`));
