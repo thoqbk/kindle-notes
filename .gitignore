@@ -7,3 +7,4 @@ data
 .DS_Store
 src/.env
 web/build
+.env
