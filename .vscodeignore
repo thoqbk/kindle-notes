@@ -12,3 +12,4 @@ data/**
 web/**
 node_modules/**
 docs/**
+server/**
